@@ -1,3 +1,7 @@
-Django
+Django==3.2.4
 psycopg2-binary
 gunicorn
+djongo
+mongoengine
+pylint-mongoengine
+pymongo

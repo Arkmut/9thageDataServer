@@ -12,11 +12,25 @@ services:
       - app/.env.dev
     depends_on:
       - db
+      - mongo
   db:
     image: postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - app/.env.dev
+  mongo:
+      image: mongo
+      container_name: mongo
+      restart: always
+      env_file:
+        - app/.env.dev
+      volumes:
+        - mongo_data:/data/db
+      ports:
+        - 27017:27017
+
 volumes:
   postgres_data:
+  mongo_data:
+  static_volume:
