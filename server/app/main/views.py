@@ -8,7 +8,8 @@ def dashboard(request):
 
 def army_list(request):
     try:
-        armies = ArmyBook.objects.all()
-        return render(request, "main/army_list.html", {"armies": armies})
+        armies = get_armybooks()
+        print(armies)
+        #return render(request, "main/army_list.html", {"armies": armies})
     finally:
         return render(request, "main/army_list.html", {"armies": []})

@@ -61,6 +61,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'main.context_processor.export_vars'
             ],
         },
     },
@@ -79,23 +80,9 @@ DATABASES = {
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
         "HOST": os.environ.get("SQL_HOST"),
         "PORT": os.environ.get("SQL_PORT"),
-    },
-    "noSQL": {
-        "ENGINE": "djongo",
-        "NAME": os.environ.get('MONGO_DB_NAME'),
-        'ENFORCE_SCHEMA': False,
-        "CLIENT": {
-            "host": os.environ.get('MONGO_DB_HOST'),
-            "port": int(os.environ.get('MONGO_DB_PORT')),
-            "username": os.environ.get('MONGO_DB_USERNAME'),
-            "password": os.environ.get('MONGO_DB_PASSWORD'),
-        },
-        'TEST': {
-            'MIRROR': 'default',
-        },
     }
 }
-DATABASE_ROUTERS = ['main.utils.db_routers.NonRelRouter', ]
+DATABASE_ROUTERS = []
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 

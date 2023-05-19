@@ -9,7 +9,11 @@
     <!-- Include the Bulma CSS framework for styling -->
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
-    <title>9th Age Army Editor</title>
+    <title>
+        {% if DEBUG == "1" %}
+        DEBUG ON !! 
+        {% endif %}9th Age Army Editor
+    </title>
 </head>
 <body>
 <section class="hero is-small is-success mb-4">
