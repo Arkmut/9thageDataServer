@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'main'
 ]
 
 MIDDLEWARE = [
@@ -82,6 +83,7 @@ DATABASES = {
     "noSQL": {
         "ENGINE": "djongo",
         "NAME": os.environ.get('MONGO_DB_NAME'),
+        'ENFORCE_SCHEMA': False,
         "CLIENT": {
             "host": os.environ.get('MONGO_DB_HOST'),
             "port": int(os.environ.get('MONGO_DB_PORT')),

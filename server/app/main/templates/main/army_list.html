@@ -1,0 +1,18 @@
+<!-- main/templates/main/army_list.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="column">
+    {% for army in armies %}
+
+    <div>
+        <p>{{ army.name }}</p>
+        <p>{{ army.version }}</p>
+        <p>{{ army.updated_at }}</p>
+    </div>
+
+    {% endfor %}
+</div>
+
+{% endblock content %}

@@ -16,7 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-
+from .views import dashboard, army_list
+app_name = "9thAgeDataServer"
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path("", dashboard, name="dashboard"),
+    path("army_list/", army_list, name="army_list"),
+    path('admin/', admin.site.urls)
+
 ]
+
