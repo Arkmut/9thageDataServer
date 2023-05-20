@@ -18,7 +18,19 @@ if not collection_exists("ArmyBooks"):
                 }
             }
         }
-    }, [("name", pymongo.ASCENDING), ("version", pymongo.DESCENDING)])
+    }, [pymongo.IndexModel([("name", pymongo.ASCENDING)]), pymongo.IndexModel([("version", pymongo.DESCENDING)])])
+
 
 def get_armybooks():
     return get_all("ArmyBooks")
+
+
+def get_army(name: str, version: str):
+    return get("ArmyBooks", {'name': name, 'version': version})
+
+
+def add_army(name: str, version: str):
+    return bulk_add("ArmyBooks", [{
+        "name": name,
+        "version": version
+    }])
