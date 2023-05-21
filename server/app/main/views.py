@@ -16,15 +16,17 @@ def dashboard(request):
 def army_list(request):
     try:
         armies = get_armybooks()
-        print(armies)
-        return render(request, "main/army_list.html", {"armies": [ObjectViewer(a) for a in armies]})
-    finally:
+        armies_obj = [ObjectViewer(a) for a in armies]
+        return render(request, "main/army_list.html", {"armies": armies_obj})
+    except Exception as e:
+        logger_view.error(e)
         return render(request, "main/army_list.html", {"armies": []})
 
 
 def army_edit(request, name, version):
-    army = list(get_army(name, version))[0]
-    return render(request, "main/army_edit.html", {"army": ObjectViewer(army)})
+    army = ObjectViewer(list(get_army(name, version))[0])
+    logger_view.info(f"army: {army}")
+    return render(request, "main/army_edit.html", {"army": army})
 
 
 def create_army(request):
@@ -33,7 +35,5 @@ def create_army(request):
     if name == "" or version == "":
         return HttpResponseBadRequest(f"name is empty: {name} or version is empty {version}", status=405)
     add_army(name, version)
-    get_army(name, version)
-    logger_view.info("BBBBBBBBBBBBBBBBBBBBBB")
 
     return redirect(f"/army_list/{name}/{version}/")

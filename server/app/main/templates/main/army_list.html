@@ -2,45 +2,50 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div>
-    <form action="create_army/" method="GET">
-
-        <input class="input" type="text" name="name" id="name" placeholder="Army Name">
-        <input class="input" type="text" name="version" id="version" placeholder="Version">
-        <button class="button">Add</button>
-    </form>
+<div class="columns is-flex-direction-column">
 
 
-</div>
-<div class="column">
-    {% for army in armies %}
+    <div class="column">
+        <form action="create_army/" method="GET">
+
+            <input class="input" type="text" name="name" id="name" placeholder="Army Name">
+            <input class="input" type="text" name="version" id="version" placeholder="Version">
+            <button class="button">Add</button>
+        </form>
 
 
-    <div class="block">
-        <div class="card">
-            <a href="#">
-                <div class="card-content">
-                    <div class="media">
-                        <div class="media-left">
-                            <figure class="image is-48x48">
-                                <img src="https://bulma.io/images/placeholders/96x96.png"
-                                     alt="Placeholder image">
-                            </figure>
-                        </div>
-                        <div class="media-content">
-                            <p class="title is-4">
-                                {{ army.name }}
-                            </p>
-                            <p class="subtitle is-6">
-                                {{ army.version }}
-                            </p>
+    </div>
+    <div class="column">
+
+        {% for army in armies %}
+
+
+        <div class="block">
+            <div class="card">
+                <a href="{{ army.name }}/{{ army.version }}/">
+                    <div class="card-content">
+                        <div class="media">
+                            <div class="media-left">
+                                <figure class="image is-48x48">
+                                    <img src="https://bulma.io/images/placeholders/96x96.png"
+                                         alt="Placeholder image">
+                                </figure>
+                            </div>
+                            <div class="media-content">
+                                <p class="title is-4">
+                                    {{ army.name }}
+                                </p>
+                                <p class="subtitle is-6">
+                                    {{ army.version }}
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </a>
+                </a>
+            </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
 
 {% endblock content %}

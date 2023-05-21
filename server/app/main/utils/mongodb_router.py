@@ -14,18 +14,16 @@ def bulk_add(collection: str, elements: [dict]):
 
 
 def get_all(collection: str):
-    yield db_handle[collection].find()
+    return db_handle[collection].find()
 
 
 def get(collection: str, dict_index: dict):
-    logger_router.info(f"get: {collection}, {dict_index}")
-
     return db_handle[collection].find(dict_index)
 
 
-def create_collection(collection: str, schema: dict, indexes: [pymongo.IndexModel]):
+def create_collection(collection: str, schema: dict, indexes: [tuple]):
     db_handle.create_collection(collection, validator=schema)
-    db_handle[collection].create_indexes(indexes)
+    db_handle[collection].create_index(indexes,unique=True)
     return db_handle[collection]
 
 
