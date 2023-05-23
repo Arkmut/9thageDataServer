@@ -2,7 +2,7 @@
 # BUILDER #
 ###########
 
-FROM python:3.9-slim-bullseye as builder
+FROM python:3.9-slim as builder
 # set work directory
 WORKDIR /usr/src/app
 # set environment variables
@@ -11,17 +11,21 @@ ENV PYTHONUNBUFFERED=1
 
 #install packages
 RUN apt-get update
-RUN apt-get -y install netcat gcc python3-dev musl-dev
+RUN apt-get -y install netcat gcc python3-dev musl-dev nodejs npm
 # install dependencies
 RUN pip install --upgrade pip
 COPY requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt
 
+COPY front /usr/src/app/
+RUN npm install -g @vue/cli -silent
+RUN npm install -silent
+
 
 #########
 # FINAL #
 #########
-FROM python:3.9-slim-bullseye
+FROM python:3.9-slim
 
 # create directory for the app user
 RUN mkdir -p /home/app
@@ -42,6 +46,8 @@ RUN apt-get -y install netcat
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
 RUN pip install --no-cache /wheels/*
+COPY --from=builder /usr/src/app/www/ $APP_HOME/staticfiles/
+COPY --from=builder /usr/src/app/front/ $APP_HOME/front/
 
 # copy entrypoint.sh
 COPY ./entrypoint.sh .
@@ -50,7 +56,7 @@ RUN sed -i 's/\r$//g'  $APP_HOME/entrypoint.sh
 RUN chmod +x  $APP_HOME/entrypoint.sh
 
 # copy project
-COPY . $APP_HOME
+COPY app/ $APP_HOME
 
 # chown all the files to the app user
 RUN chown -R app:app $APP_HOME

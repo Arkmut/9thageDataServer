@@ -76,5 +76,13 @@ def get_army(name: str, version: str):
 def add_army(name: str, version: str):
     return bulk_add("ArmyBooks", [{
         "name": name,
-        "version": version
+        "version": version,
+        "armyRules": {},
+        "modelRules": {},
+        "hereditarySpell": {},
+        "specialItems": {},
+        "armyOrganisation": {
+            "categories": []
+        },
+        "units": {},
     }])
