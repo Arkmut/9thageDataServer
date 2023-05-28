@@ -19,11 +19,13 @@ from django.urls import path
 from .views import *
 app_name = "9thAgeDataServer"
 urlpatterns = [
-    path("", dashboard, name="dashboard"),
-    path("army_list/", army_list, name="army_list"),
-    path("army_list/create_army/", create_army, name="create_army"),
-    path("army_list/<str:name>/<str:version>/", army_edit, name="army_edit"),
-    path('admin/', admin.site.urls)
+    path("api/army_list", army_list, name="army_list"),
+    path("api/army_list/create_army", create_army, name="create_army"),
+    path("api/army_list/get_army", get_army, name="get_army"),
+    path("api/army_list/save_army", save_army, name="save_army"),
+    path('api/admin/', admin.site.urls),
+    path('api/get_token', get_csrf_token)
+
 
 ]
 

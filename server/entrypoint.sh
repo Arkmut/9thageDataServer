@@ -22,6 +22,3 @@ echo "MongDB started"
 #python manage.py migrate
 
 exec "$@"
-echo "Starting front"
-cd front
-npm run serve

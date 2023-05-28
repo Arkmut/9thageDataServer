@@ -70,7 +70,7 @@ def get_armybooks():
 
 
 def get_army(name: str, version: str):
-    return get("ArmyBooks", {'name': name, 'version': version})
+    return list(get("ArmyBooks", {'name': name, 'version': version}))
 
 
 def add_army(name: str, version: str):
@@ -86,3 +86,7 @@ def add_army(name: str, version: str):
         },
         "units": {},
     }])
+
+
+def save_army(name: str, version: str, army: {}):
+    return update("ArmyBooks", {'name': name, 'version': version}, {'$set': army})

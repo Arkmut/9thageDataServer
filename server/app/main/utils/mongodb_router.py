@@ -19,7 +19,8 @@ def get_all(collection: str):
 
 def get(collection: str, dict_index: dict):
     return db_handle[collection].find(dict_index)
-
+def update(collection: str,dict_index: dict, update_dict: dict):
+    return db_handle[collection].update_one(dict_index,update_dict)
 
 def create_collection(collection: str, schema: dict, indexes: [tuple]):
     db_handle.create_collection(collection, validator=schema)

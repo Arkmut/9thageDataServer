@@ -3,5 +3,4 @@ psycopg2-binary
 gunicorn
 pymongo
 dnspython
-djangorestframework
 django-cors-headers
