@@ -36,7 +36,7 @@ def create_army(request):
         if name == "" or version == "":
             return HttpResponseBadRequest(f"name is empty: {name} or version is empty {version}", status=405)
         add_army(name, version)
-        return HttpResponse(dumps(get_army(name, version)[0]), content_type="application/json")
+        return HttpResponse(dumps(mongo_models.get_army(name, version)[0]), content_type="application/json")
 
 
 def get_army(request):

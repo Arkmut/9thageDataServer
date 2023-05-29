@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueCookies from 'vue-cookies'
 import VueRouter from 'vue-router'
 import axios from 'axios';
+import { ValidationProvider } from 'vee-validate';
 
 import App from './App.vue'
 import ArmyEditor from './components/ArmyEditor.vue'
@@ -21,6 +22,7 @@ Vue.prototype.$router = router;
 Vue.config.productionTip = false
 Vue.use(VueCookies, { expires: '1d'});
 Vue.use(VueRouter);
+Vue.component('ValidationProvider', ValidationProvider);
 
 
 

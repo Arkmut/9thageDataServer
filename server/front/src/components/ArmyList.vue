@@ -1,20 +1,26 @@
 <template>
     <div class="columns is-flex-direction-column">
         <div class="column">
-            <form v-on:submit.prevent="createArmy">
+            <form v-on:submit.prevent="createArmy" class="is-flex">
 
-                <input class="input" type="text" name="name" id="name" v-model="name" placeholder="Army Name">
-                <input class="input" type="text" name="version" id="version" v-model="version" placeholder="Version">
-                <button class="button" type="submit">Add</button>
+                <div><input class="input" type="text" name="name" id="name" v-model="name" placeholder="Army Name">
+                </div>
+                <div><input class="input" type="text" name="version" id="version" v-model="version"
+                            placeholder="Version"></div>
+                <div>
+                    <button class="button" type="submit">Add</button>
+                </div>
             </form>
         </div>
         <div class="column">
-            <template v-if="armies === null">
-                Loading
-            </template>
-            <template v-else-if="armies.length === 0">
-            </template>
-            <template v-else>
+            <div v-if="armies === null" class="column is-align-self-stretch is-12">
+                <div class="loader-wrapper is-active">
+                    <div class="loader is-loading ml-auto mr-auto custom-size"></div>
+                </div>
+            </div>
+            <div v-else-if="armies.length === 0">
+            </div>
+            <div v-else>
                 <div v-for="army in armies" :key="army.name">
                     <div class="block">
                         <div class="card">
@@ -41,7 +47,7 @@
                         </div>
                     </div>
                 </div>
-            </template>
+            </div>
 
         </div>
     </div>
@@ -97,4 +103,17 @@
     }
 
 
+
+
+
+
+
 </script>
+<style>
+.custom-size {
+  height: 64px;
+  width: 64px;
+}
+
+
+</style>
