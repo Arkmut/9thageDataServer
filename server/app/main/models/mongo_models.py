@@ -462,9 +462,12 @@ if not collection_exists("ArmyBooks"):
                 "loc": {
                     "bsonType": "object",
                     "required": ["en"],
-                    "en": {
-                        "bsonType": "object"
+                    "properties": {
+                        "en": {
+                            "bsonType": "object"
+                        }
                     }
+
                 }
 
             }
@@ -510,8 +513,8 @@ def add_army(name: str, version: str):
         "armyList": {
             "units": []
         },
-        "loc":{
-            "en":{}
+        "loc": {
+            "en": {}
         }
     }])
 

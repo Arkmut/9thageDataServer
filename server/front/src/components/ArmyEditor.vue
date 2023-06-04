@@ -81,7 +81,7 @@
                                         </div>
 
                                         <div class="ml-auto">
-                                            <button class="button" @click="rmArmyRule" :id="'rmArmyRule_' + rule.name">-
+                                            <button class="button" @click="rmArmyRule($event,rule.name)">-
                                             </button>
                                         </div>
 
@@ -146,7 +146,7 @@
                                         </div>
 
                                         <div class="ml-auto">
-                                            <button class="button" @click="rmModelRule" :id="'rmModelRule_' + rule.name">-
+                                            <button class="button" @click="rmModelRule($event,rule.name)">-
                                             </button>
                                         </div>
 
@@ -211,7 +211,7 @@
                                         </div>
 
                                         <div class="ml-auto">
-                                            <button class="button" @click="rmSpecialItem" :id="'rmItem_' + item.name">-
+                                            <button class="button" @click="rmSpecialItem($event,item.name)">-
                                             </button>
                                         </div>
 
@@ -292,7 +292,7 @@
                                         </label>
                                         </div>
                                         <div class="ml-auto">
-                                            <button class="button" @click="rmCategory" :id="'rmCategory_' + category.name">-
+                                            <button class="button" @click="rmCategory($event,category.name)">-
                                             </button>
                                         </div>
 
@@ -352,7 +352,7 @@
                                         </div>
 
                                         <div class="ml-auto">
-                                            <button class="button" @click="rmUnit" :id="'rmUnit_' + unit.name">-
+                                            <button class="button" @click="rmUnit($event,unit.name)">-
                                             </button>
                                         </div>
 
@@ -363,6 +363,120 @@
                     </div>
                     <div id="endUnits"></div>
                 </v-collapse-wrapper>
+
+                <!-- translations-->
+
+                <section class="section small">
+                    <div class="is-flex">
+                        <div class="is-align-self-flex-start">
+                            <h1 class="title">Translations</h1>
+                        </div>
+                        <div class="ml-auto">
+                            <input class="input" type="text" name="name"
+                                   id="newTranslationName"
+                                   v-model="newTranslationName"
+                                   placeholder="Language"/>
+                        </div>
+                        <div class="">
+                            <button class="button" @click="addTranslation">+</button>
+                        </div>
+                        <div>
+                            <button class="button" @click="toggleExpandTranslations"
+                                    v-show="Object.keys(army.loc).length>0">
+                                <div v-if="translationsExpanded">
+                                    <span class="icon">
+                                    <i class="fas fa-angle-up" aria-hidden="true"></i>
+                                </span>
+                                </div>
+                                <div v-else>
+                                    <span class="icon">
+                                    <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                </span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                <v-collapse-wrapper class="columns is-flex-direction-column">
+                    <div v-for="(key) in Object.keys(army.loc)" :key="key"
+                         v-show="translationsExpanded">
+                        <div class="block">
+                            <div class="is-flex">
+                                <div class="is-align-self-flex-start">
+                                    <h2 class="subtitle">{{key}}</h2>
+                                </div>
+                                <div class="ml-auto">
+                                    <input class="input" type="text" name="name"
+                                           :id="'newTranslationEntryName_'+key"
+                                           v-model="newTranslationEntryName[key]"
+                                           placeholder="Language"/>
+                                </div>
+                                <div class="">
+                                    <button class="button" @click="addTranslationEntry(key)">+</button>
+                                </div>
+                                <div>
+                                    <button class="button" @click="toggleExpandTranslationsEntries(key)"
+                                            v-show=" Object.keys(army.loc[key]).length>0">
+                                        <div v-if="translationsEntriesExpanded[key]">
+                                    <span class="icon">
+                                    <i class="fas fa-angle-up" aria-hidden="true"></i>
+                                </span>
+                                        </div>
+                                        <div v-else>
+                                    <span class="icon">
+                                    <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                </span>
+                                        </div>
+                                    </button>
+                                </div>
+                                <div class="">
+                                    <button class="button" @click="rmTranslation($event,key)"
+                                            v-show="key !== 'en'">-
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <v-collapse-wrapper class="columns is-flex-direction-column">
+                            <div v-for="(keyLine, indexKeyLine) in Object.keys(army.loc[key])" :key="indexKeyLine"
+                                 v-show="translationsEntriesExpanded[key]">
+                                <div class="block">
+                                    <div class="card">
+                                        <div class="card-content">
+
+                                            <div class="columns is-flex is-align-items-center">
+                                                <div class="column is-6">
+                                                    <div class="columns is-flex is-justify-content-space-evenly is-align-items-center">
+                                                        <div class="">
+                                                            <div class="subtitle is-6">{{keyLine}}
+                                                            </div>
+                                                        </div>
+                                                        <div class=""><input class="input" type="text" name="name"
+                                                                             id="loc_line_value"
+                                                                             v-model="army.loc[key][keyLine]"
+                                                                             placeholder="Translation entry text"/>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+
+                                                <div class="ml-auto">
+                                                    <button class="button"
+                                                            @click="rmTranslationEntry( $event,key,keyLine)">-
+                                                    </button>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div :id="'endTranslationEntry_'+key"></div>
+                        </v-collapse-wrapper>
+                    </div>
+                    <div id="endTranslations"></div>
+                </v-collapse-wrapper>
+
+
             </div>
         </div>
     </div>
@@ -377,6 +491,10 @@
                 modelRulesExpanded: false,
                 specialItemsExpanded: false,
                 unitsExpanded: false,
+                translationsExpanded: false,
+                translationsEntriesExpanded : {},
+                newTranslationName: "Language",
+                newTranslationEntryName: {"en":"entry"},
             }
         },
         methods: {
@@ -423,9 +541,9 @@
                 let elmnt =document.getElementById('endCategories');
                 elmnt.scrollIntoView(true);
             },
-            rmCategory(event){
+            rmCategory(event,name){
                 for(let i =0; i<this.army.armyOrganisation.categories.length;i++){
-                    if(this.army.armyOrganisation.categories[i].name === event.target.id.substring("rmCategory_".length)){
+                    if(this.army.armyOrganisation.categories[i].name === name){
                         this.army.armyOrganisation.categories.splice(i,1);
                         break;
                     }
@@ -443,9 +561,9 @@
                 this.armyRulesExpanded=true;
 
             },
-            rmArmyRule(event){
+            rmArmyRule(event,name){
                 for(let i =0; i<this.army.armyRules.rules.length;i++){
-                    if(this.army.armyRules.rules[i].name === event.target.id.substring("rmArmyRule_".length)){
+                    if(this.army.armyRules.rules[i].name === name){
                         this.army.armyRules.rules.splice(i,1);
                         break;
                     }
@@ -463,9 +581,9 @@
                 this.modelRulesExpanded=true;
                 
             },
-            rmModelRule(event){
+            rmModelRule(event,name){
                 for(let i =0; i<this.army.modelRules.rules.length;i++){
-                    if(this.army.modelRules.rules[i].name === event.target.id.substring("rmModelRule_".length)){
+                    if(this.army.modelRules.rules[i].name === name){
                         this.army.modelRules.rules.splice(i,1);
                         break;
                     }
@@ -489,9 +607,9 @@
                 let elmnt =document.getElementById('endItems');
                 elmnt.scrollIntoView(true);
             },
-            rmSpecialItem(event){
+            rmSpecialItem(event,name){
                 for(let i =0; i<this.army.specialItems.items.length;i++){
-                    if(this.army.specialItems.items[i].name === event.target.id.substring("rmItem_".length)){
+                    if(this.army.specialItems.items[i].name === name){
                         this.army.specialItems.items.splice(i,1);
                         break;
                     }
@@ -515,15 +633,70 @@
                 let elmnt =document.getElementById('endUnits');
                 elmnt.scrollIntoView(true);
             },
-            rmUnit(event){
+            rmUnit(event,name){
                 for(let i =0; i<this.army.armyList.units.length;i++){
-                    if(this.army.armyList.units[i].name === event.target.id.substring("rmUnit_".length)){
+                    if(this.army.armyList.units[i].name === name){
                         this.army.armyList.units.splice(i,1);
                         break;
                     }
                 }
                 this.unitsExpanded = this.army.armyList.units.length>0;
 
+            },
+
+            
+            addTranslation(){
+                if(this.newTranslationName in this.army.loc){
+                    return;
+                }
+                this.$set(this.army.loc,this.newTranslationName,{});
+                this.newTranslationEntryName[this.newTranslationName]="entry";
+                this.newTranslationName = "Language"
+
+                this.translationsExpanded=true;
+                let elmnt =document.getElementById('endTranslations');
+                elmnt.scrollIntoView(true);
+            },
+            rmTranslation(event,key){
+                this.$delete(this.army.loc, key);
+                this.translationsExpanded = Object.keys(this.army.loc).length>0;
+
+            },
+            toggleExpandTranslations(){
+                this.translationsExpanded = !this.translationsExpanded;
+                if(this.translationsExpanded){
+                    let elmnt =document.getElementById('endTranslations');
+                    elmnt.scrollIntoView(true);
+
+
+                }
+            },
+            
+            addTranslationEntry(key){
+                if(key in this.army.loc[key]){
+                    return;
+                }
+                this.$set(this.army.loc[key],this.newTranslationEntryName[key],"");
+                this.newTranslationEntryName[key]="entry";
+                this.translationsEntriesExpanded[key]=true;
+                let elmnt =document.getElementById('endTranslationEntry_'+key);
+                elmnt.scrollIntoView(true);
+            },
+            rmTranslationEntry(event,key,keyLine){
+
+               this.$delete(this.army.loc[key],keyLine);
+               this.translationsEntriesExpanded[key] = this.army.loc[key].length>0;
+
+            },
+            toggleExpandTranslationsEntries(key){
+            console.log("toggle: "+key);
+                this.translationsEntriesExpanded[key] = !(key in this.translationsEntriesExpanded) || !this.translationsEntriesExpanded[key];
+                if(this.translationsEntriesExpanded[key]){
+                    let elmnt =document.getElementById('endTranslationEntry_'+key);
+                    elmnt.scrollIntoView(true);
+
+
+                }
             },
 
         },
@@ -540,12 +713,36 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 </script>
 <style>
 .custom-size {
   height: 64px;
   width: 64px;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
