@@ -41,9 +41,13 @@
 
                 <!-- Hereditary spell-->
 
-                <section class="section small">
-                    <h1 class="title">Hereditary spell</h1>
-                </section>
+                <ObjectEditor
+                        :value="army.hereditarySpell"
+                        :defaultValues="defaultHereditarySpell"
+                        :titleValue="'Hereditary Spell'"
+                        :titleLevel="'title'"
+                @updateValue="addToObject(army.hereditarySpell,$event)"
+                />
                 <!-- Special items-->
                 <ItemList :items="army.specialItems.items" titleItemList="Special items"
                           @add="addToArray(army.specialItems.items,$event)"
@@ -78,6 +82,7 @@ import ItemList from './editor/ItemList.vue'
 import CategoryList from './editor/CategoryList.vue'
 import UnitList from './editor/UnitList.vue'
 import LanguageList from './editor/LanguageList.vue'
+import ObjectEditor from './editor/ObjectEditor.vue'
 
     export default {
         components: {
@@ -86,10 +91,17 @@ import LanguageList from './editor/LanguageList.vue'
             CategoryList,
             UnitList,
             LanguageList,
+            ObjectEditor,
         },
         data() {
             return {
                 army: null,
+                defaultHereditarySpell:{
+                    castingValue:{
+                        "base":0
+                    },
+                    types:"",
+                }
 
             }
         },
