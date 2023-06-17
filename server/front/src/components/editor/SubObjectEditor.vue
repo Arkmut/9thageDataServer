@@ -35,30 +35,7 @@
                                 <div class="column is-1"/>
                                 <div class="column is-10">
                                     <template v-if="(typeof value[key]) === 'object'">
-                                        <template v-if="value[key].constructor.name === 'Object'">
-                                            <ObjectEditor
-                                                    :value="value[key]"
-                                                    :titleValue="key"
-                                                    :defaultValues="defaultValues[key]"
-                                                    :titleLevel="subtitle"
-                                                    :enums="enums[key]"
-                                                    @updateValue="updateSubValue(key,$event)"
-                                            />
-                                            <div style="margin-bottom:30px"/>
-                                        </template>
-                                        <template v-else>
-                                            <ListEditor
-                                                    :value="value[key]"
-                                                    :titleValue="key"
-                                                    :defaultValues="defaultValues[key]"
-                                                    :titleLevel="subtitle"
-                                                    :enums="enums[key]"
-                                                    @updateValue="updateSubValue(key,$event)"
-                                                    @addValue="addValue(key,$event)"
-                                                    @rmValue="rmValue(key,$event)"
-                                            />
-                                            <div style="margin-bottom:30px"/>
-                                        </template>
+                                        Error!! no nested component here
                                     </template>
                                     <template v-else-if="(typeof value[key]) === 'boolean'">
                                         <div class="columns is-flex is-align-items-center">
@@ -116,13 +93,11 @@
     </div>
 </template>
 <script>
-import ListEditor from './ListEditor.vue'
 import EnumEditor from './EnumEditor.vue'
 
     export default {
-    name: "ObjectEditor",
+    name: "SubObjectEditor",
     components:{
-        ListEditor,
         EnumEditor,
     },
         props: {
@@ -149,23 +124,7 @@ import EnumEditor from './EnumEditor.vue'
             updateValue(key,value){
                 this.$emit("updateValue",{key:key,value:value});
             },
-           updateSubValue(key,event){
-                let tmp = this.value[key];
-                tmp[event.key] = event.value;
-                console.log("hi",JSON.stringify(tmp[event.key],null,4),event.key,key,JSON.stringify(tmp,null,4));
-                this.updateValue(key,tmp);
-            },
-             addValue(key,event){
-                let tmp = this.value[key];
-                tmp.push(event);
-                console.log("push "+key+" "+event);
-                this.updateValue(key,tmp);
-            },
-            rmValue(key,index){
-                let tmp = this.value[key];
-                tmp.splice(index,1);
-                this.updateValue(key,tmp);
-            },
+
 
         },
 

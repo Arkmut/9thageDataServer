@@ -39,47 +39,72 @@
                                 <div class="column is-1"/>
 
                                 <div class="column is-10">
-                                    <div v-if="(typeof element) === 'object'">
-                                        <div v-if="element.constructor.name === 'Object'">
-                                            <ObjectEditor
+                                    <template v-if="(typeof element) === 'object'">
+                                        <template v-if="element.constructor.name === 'Object'">
+
+                                            <SubObjectEditor
                                                     :value="element"
                                                     :defaultValues="defaultValues"
                                                     :titleValue="index"
                                                     :titleLevel="subtitle"
+                                                    :enums="enums"
                                                     @updateValue="updateSubValue(index,$event)"
                                             />
+
+
                                             <div style="margin-bottom:30px"/>
-                                        </div>
-                                        <div v-else>
+                                        </template>
+                                        <template v-else>
                                             ERROR ! nested list
+                                        </template>
+                                    </template>
+                                    <template v-else-if="(typeof value[key]) === 'boolean'">
+                                        <div class="columns is-flex is-align-items-center">
+                                            <div class="column is-flex is-6">
+                                                <label class="checkbox"><input type="checkbox"
+                                                                               name="minimum"
+                                                                               id="minimum"
+                                                                               :value="element"
+                                                                               @input="event => updateValue(index,event.target.value)">
+                                                </label>
+                                            </div>
+
                                         </div>
-                                    </div>
-                                    <div v-else>
+                                    </template>
+                                    <template v-else>
                                         <div class="columns is-flex is-align-items-center">
                                             <div class="column is-6">
                                                 <div class="columns is-flex is-justify-content-space-evenly is-align-items-center">
-                                                    <div class="is-align-self-flex-start">
+                                                    <div class="column is-flex">
                                                         <label>
                                                             {{key}}
                                                         </label>
                                                     </div>
-                                                    <div class=""><input class="input"
-                                                                         type="text"
-                                                                         name="def"
-                                                                         :value="element"
-                                                                         @input="updateValue(index,event.target.value)"
-                                                                         placeholder="Value"/>
+                                                    <div class="column is-flex" v-if="(enums.length>0)">
+                                                        <EnumEditor
+                                                                :value="value[index]"
+                                                                :enumList="enums"
+                                                                @updateValue="updateValue(index,$event)"
+                                                        />
+                                                    </div>
+                                                    <div class="column is-flex" v-else><input class="input"
+                                                                                              type="text"
+                                                                                              name="def"
+                                                                                              :value="element"
+                                                                                              @input="event => updateValue(index,event.target.value)"
+                                                                                              placeholder="Value"/>
                                                     </div>
 
                                                 </div>
                                             </div>
 
-                                            <div class="ml-auto">
-                                                <button class="button" @click="rmElement(index)">-</button>
-                                            </div>
+
                                         </div>
-                                            
-                                    </div>
+
+                                    </template>
+                                </div>
+                                <div class="ml-auto">
+                                    <button class="button" @click="rmElement(index)">-</button>
                                 </div>
                             </div>
                         </div>
@@ -94,17 +119,22 @@
     </div>
 </template>
 <script>
-import ObjectEditor from './ObjectEditor.vue'
+import SubObjectEditor from './SubObjectEditor.vue'
+import EnumEditor from './EnumEditor.vue'
+
 
     export default {
     components:{
-        ObjectEditor,
+        SubObjectEditor,
+        EnumEditor,
     },
         props: {
             value: { type: Object, required: true },
             defaultValues: { type: Object, required: true },
             titleValue:{type: String, required: true },
             titleLevel:{type: String, required: true },
+            enums:{type:Array,default:() => ([])},
+
         },
         data() {
             return {
@@ -120,15 +150,17 @@ import ObjectEditor from './ObjectEditor.vue'
             },
 
             updateValue(index,value){
+                this.$set(this.value,index,value);
                 this.$emit("updateValue",{key:index,value:value});
             },
            updateSubValue(index,event){
-                let tmp = this.value;
+                let tmp = this.value[index];
                 tmp[event.key] = event.value;
                 this.updateValue(index,tmp);
             },
             addElement(){
                 let tmp = this.defaultValues;
+                this.valueExpanded = true;
                 this.$emit("addValue",tmp);
             },
             rmElement(index){
@@ -136,9 +168,11 @@ import ObjectEditor from './ObjectEditor.vue'
 
             },
 
+
         },
 
     }
+
 
 
 
@@ -176,6 +210,7 @@ import ObjectEditor from './ObjectEditor.vue'
   height: 64px;
   width: 64px;
 }
+
 
 
 

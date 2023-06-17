@@ -139,8 +139,12 @@ if not collection_exists("ArmyBooks"):
                             "description": "'items' is required",
                             "items": {
                                 "bsonType": "object",
-                                "required": ["type", "cost", "support", "rules"],
+                                "required": ["name", "type", "cost", "support", "rules"],
                                 "properties": {
+                                    "name": {
+                                        "bsonType": "string",
+                                        "description": "'name' is required"
+                                    },
                                     "type": {
                                         "bsonType": "string",
                                         "description": "'type' is required",
@@ -224,7 +228,7 @@ if not collection_exists("ArmyBooks"):
                                     },
                                     "categories": {
                                         "bsonType": "array",
-                                        "description": "'types' is required",
+                                        "description": "'categories' is required",
                                         "items": {
                                             "bsonType": "string"
                                         }

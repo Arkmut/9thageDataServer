@@ -35,20 +35,17 @@
                         <div class="card-content">
 
                             <div class="columns is-flex is-align-items-center">
-                                <div class="column is-6">
-                                    <div class="columns is-flex is-justify-content-space-evenly is-align-items-center">
-                                        <div class=""><input class="input" type="text" name="name"
-                                                             id="unit_name"
-                                                             v-model="unit.name"
-                                                             placeholder="Special unit name"/>
-                                        </div>
-                                        <div class=""><input class="input" type="text" name="def"
-                                                             id="unit_def"
-                                                             v-model="unit.definition"
-                                                             placeholder="Special unit definition"/>
-                                        </div>
+                                <div class="column is-1"/>
+                                <div class="column is-10">
 
-                                    </div>
+                                    <ObjectEditor
+                                            :value="unit"
+                                            :defaultValues="defaultUnit"
+                                            :titleValue="unit.name"
+                                            :titleLevel="'subtitle'"
+                                            :enums="enumUnit"
+                                            @updateValue="addToObject(unit,$event)"
+                                    />
                                 </div>
 
                                 <div class="ml-auto">
@@ -57,6 +54,8 @@
                                 </div>
 
                             </div>
+                            <div style="margin-bottom:30px"/>
+                            
                         </div>
                     </div>
                 </div>
@@ -69,26 +68,98 @@
     </div>
 </template>
 <script>
+import ObjectEditor from './ObjectEditor.vue'
     export default {
         props: {
             titleUnitList: { type: String, required: true },
             units: { type: Array, required: true },
         },
+        components: {
+            ObjectEditor,
+        },
         data() {
             return {
                 unitsExpanded: false,
+                defaultUnit:{
+                    categories:"",
+                    profile:{
+                        global:{rules:""},
+                        defense:{rules:""},
+                        offenses:{
+                            name:"",
+                            attacks:"",
+                            offensiveSkill:"",
+                            strength:"",
+                            ap:"",
+                            agility:"",
+                            rules:"",
+                        },
+                    },
+                    options:{
+
+                    },
+                },
+                enumUnit:{
+                },
                
             }
         },
+       created() {
+            this.getEnums();
+        },
         methods: {
+           async getEnums(){
+                try {
+                    // Send a POST request to the API
+                    const response = await this.$http.post('http://localhost:8000/api/get_unit_types');
+                    this.enumUnit['type'] = response.data;
+                } catch (error) {
+                    // Log the error
+                    console.log(error);
+                }
+                try {
+                    // Send a POST request to the API
+                    const response = await this.$http.post('http://localhost:8000/api/get_unit_heights');
+                    this.enumUnit['height'] = response.data;
+                } catch (error) {
+                    // Log the error
+                    console.log(error);
+                }
+           },
             
            toggleExpandUnits(){
                 this.unitsExpanded = !this.unitsExpanded;
 
             },
-            
+            addToObject(obj, element){
+                this.$set(obj,element.key,element.value);
+           },
             addUnit(){
-                this.$emit('add',{name:"",units:""});
+                this.$emit('add',
+                    {
+                        name:"",categories:[],cost:0,unitSize:1,type:"infantry",height:"standard",
+                        baseSize:{width:20,depth:20},
+                        profile:
+                            {
+                                global:
+                                    {
+                                        advanceRate:"",
+                                        marchRate:"",
+                                        discipline:"",
+                                        rules:[],
+                                    },
+                                defense:
+                                    {
+                                        hp:"",
+                                        defensiveSkill:"",
+                                        resistance:"",
+                                        armour:"",
+                                        rules:[],
+                                    },
+                                offenses:[],
+                            },
+                        options:[],
+                    });
                 this.unitsExpanded=true;
 
             },

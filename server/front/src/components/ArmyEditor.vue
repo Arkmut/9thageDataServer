@@ -46,6 +46,7 @@
                         :defaultValues="defaultHereditarySpell"
                         :titleValue="'Hereditary Spell'"
                         :titleLevel="'title'"
+                        :enums="enumHereditary"
                 @updateValue="addToObject(army.hereditarySpell,$event)"
                 />
                 <!-- Special items-->
@@ -101,11 +102,31 @@ import ObjectEditor from './editor/ObjectEditor.vue'
                         "base":0
                     },
                     types:"",
-                }
+                },
+                enumHereditary:{
+                },
 
             }
         },
         methods: {
+            async getEnums() {
+                try {
+                    // Send a POST request to the API
+                    const response = await this.$http.post('http://localhost:8000/api/get_spell_types');
+                    this.enumHereditary['types'] = response.data;
+                } catch (error) {
+                    // Log the error
+                    console.log(error);
+                }
+                try {
+                    // Send a POST request to the API
+                    const response = await this.$http.post('http://localhost:8000/api/get_spell_durations');
+                    this.enumHereditary['duration'] = response.data;
+                } catch (error) {
+                    // Log the error
+                    console.log(error);
+                }
+            },
             async getArmy() {
                 try {
                     // Send a POST request to the API
@@ -151,6 +172,7 @@ import ObjectEditor from './editor/ObjectEditor.vue'
 
         },
         created() {
+            this.getEnums();
             // Fetch armies on page load
             this.getArmy();
         }

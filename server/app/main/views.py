@@ -62,3 +62,19 @@ def save_army(request):
             return HttpResponseBadRequest(f"name is empty: {name} or version is empty {version}", status=405)
         mongo_models.save_army(name, version, body["army"])
         return HttpResponse("{}", content_type="application/json")
+
+def get_item_types(request):
+    if request.method == 'POST':
+        return HttpResponse(dumps(mongo_models.ITEM_TYPES), content_type="application/json")
+def get_spell_types(request):
+    if request.method == 'POST':
+        return HttpResponse(dumps(mongo_models.SPELL_TYPES), content_type="application/json")
+def get_spell_durations(request):
+    if request.method == 'POST':
+        return HttpResponse(dumps(mongo_models.SPELL_DURATIONS), content_type="application/json")
+def get_unit_types(request):
+    if request.method == 'POST':
+        return HttpResponse(dumps(mongo_models.UNIT_TYPES), content_type="application/json")
+def get_unit_heights(request):
+    if request.method == 'POST':
+        return HttpResponse(dumps(mongo_models.UNIT_HEIGHTS), content_type="application/json")

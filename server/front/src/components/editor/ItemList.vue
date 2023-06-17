@@ -35,15 +35,17 @@
                         <div class="card-content">
 
                             <div class="columns is-flex is-align-items-center">
-                                <div class="column is-6">
-                                    <div class="columns is-flex is-justify-content-space-evenly is-align-items-center">
-                                        <div class=""><input class="input" type="text" name="name"
-                                                             id="specialItem_name"
-                                                             v-model="item.name"
-                                                             placeholder="Special item name"/>
-                                        </div>
+                                <div class="column is-1"/>
+                                <div class="column is-10">
 
-                                    </div>
+                                    <ObjectEditor
+                                            :value="item"
+                                            :defaultValues="defaultItem"
+                                            :titleValue="item.name"
+                                            :titleLevel="'subtitle'"
+                                            :enums="enumItem"
+                                            @updateValue="addToObject(item,$event)"
+                                    />
                                 </div>
 
                                 <div class="ml-auto">
@@ -52,6 +54,8 @@
                                 </div>
 
                             </div>
+                            <div style="margin-bottom:30px"/>
+
                         </div>
                     </div>
                 </div>
@@ -64,26 +68,50 @@
     </div>
 </template>
 <script>
+import ObjectEditor from './ObjectEditor.vue'
+
     export default {
         props: {
             titleItemList: { type: String, required: true },
             items: { type: Array, required: true },
         },
+        components: {
+            ObjectEditor,
+        },
         data() {
             return {
                 itemsExpanded: false,
+                defaultItem:{
+                    support:"",
+                },
+                enumItem:{
+                },
                
             }
         },
+        created() {
+            this.getItemTypes();
+        },
         methods: {
-            
+           async getItemTypes(){
+                try {
+                    // Send a POST request to the API
+                    const response = await this.$http.post('http://localhost:8000/api/get_item_types');
+                    this.enumItem['type'] = response.data;
+                } catch (error) {
+                    // Log the error
+                    console.log(error);
+                }
+           },
            toggleExpandItems(){
                 this.itemsExpanded = !this.itemsExpanded;
 
             },
-            
+            addToObject(obj, element){
+                this.$set(obj,element.key,element.value);
+           },
             addItem(){
-                this.$emit('add',{name:"",items:""});
+                this.$emit('add',{name:"",type:"weapon",cost:0,support:[],maxNb:1,dominant:false,restriction:"",rules:""});
                 this.itemsExpanded=true;
 
             },
@@ -124,12 +152,22 @@
 
 
 
+
+
+
+
+
 </script>
 <style>
 .custom-size {
   height: 64px;
   width: 64px;
 }
+
+
+
+
+
 
 
 
