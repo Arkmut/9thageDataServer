@@ -479,8 +479,16 @@ if not collection_exists("ArmyBooks"):
     }, [("name", pymongo.ASCENDING), ("version", pymongo.DESCENDING)])
 
 
-def get_armybooks():
-    return list(get_all("ArmyBooks"))
+def get_armybooks(user_known:bool,public_armies:{}):
+    if user_known:
+        return list(get_all("ArmyBooks"))
+    else:
+        res = []
+        for el in public_armies.keys():
+            army = get_army(el,public_armies[el])
+            if len(army)>0:
+                res.append(army[0])
+        return res
 
 
 def get_army(name: str, version: str):
@@ -523,5 +531,12 @@ def add_army(name: str, version: str):
     }])
 
 
+def army_check(army):
+    return None
+
+
 def save_army(name: str, version: str, army: {}):
     return update("ArmyBooks", {'name': name, 'version': version}, {'$set': army})
+
+def delete_army(name: str, version: str):
+    return delete("ArmyBooks", {'name': name, 'version': version})

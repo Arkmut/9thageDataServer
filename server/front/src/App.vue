@@ -1,17 +1,23 @@
 <template>
-    <div class="container">
+    <div>
+        <HeaderCommon/>
+        <div class="container">
 
-        <ArmyList v-if="$route.path === '/'"/>
-        <router-view v-if="$route.path !== '/'"/>
+            <ArmyList v-if="$route.path === '/'"/>
+            <router-view v-if="$route.path !== '/'"/>
+        </div>
     </div>
+
 </template>
 
 <script>
 import ArmyList from './components/ArmyList.vue'
+import HeaderCommon from './components/HeaderCommon.vue'
 export default {
   name: 'App',
   components: {
-    ArmyList
+    ArmyList,
+    HeaderCommon,
   },
   async mounted() {
     try {
@@ -26,6 +32,7 @@ export default {
     }
 
 }
+
 
 
 
@@ -72,4 +79,5 @@ $white: #fff;
 .is-loading {
   position: relative;
 }
+
 </style>

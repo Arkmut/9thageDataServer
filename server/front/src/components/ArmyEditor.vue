@@ -6,7 +6,7 @@
             </div>
         </div>
         <div v-else>
-            <nav class="navbar is-fixed-bottom is-success">
+            <nav class="navbar is-fixed-bottom is-link">
                 <div class="navbar-brand"></div>
                 <div class="navbar-start">
                     <a class="navbar-item">{{ army.name }}</a>
@@ -47,7 +47,7 @@
                         :titleValue="'Hereditary Spell'"
                         :titleLevel="'title'"
                         :enums="enumHereditary"
-                @updateValue="addToObject(army.hereditarySpell,$event)"
+                        @updateValue="addToObject(army.hereditarySpell,$event)"
                 />
                 <!-- Special items-->
                 <ItemList :items="army.specialItems.items" titleItemList="Special items"
@@ -56,7 +56,8 @@
 
 
                 <!-- Army Organisation-->
-                <CategoryList :categories="army.armyOrganisation.categories" titleCategoryList="Army organisation"
+                <CategoryList :categories="army.armyOrganisation.categories"
+                              titleCategoryList="Army organisation"
                               @add="addToArray(army.armyOrganisation.categories,$event)"
                               @rm="rmFromArray(army.armyOrganisation.categories,$event)"/>
 
@@ -67,10 +68,10 @@
 
                 <!-- translations-->
                 <LanguageList :translations="army.loc"
-                                 @addTranslation="addToObject(army.loc,$event)"
-                                 @rmTranslation="rmFromObject(army.loc,$event)"
-                                 @addTranslationEntry="addToObject(army.loc[$event.keyTrans],$event)"
-                                 @rmTranslationEntry="rmFromObject(army.loc[$event.keyTrans],$event.key)"
+                              @addTranslation="addToObject(army.loc,$event)"
+                              @rmTranslation="rmFromObject(army.loc,$event)"
+                              @addTranslationEntry="addToObject(army.loc[$event.keyTrans],$event)"
+                              @rmTranslationEntry="rmFromObject(army.loc[$event.keyTrans],$event.key)"
                 />
 
             </div>
@@ -202,12 +203,16 @@ import ObjectEditor from './editor/ObjectEditor.vue'
 
 
 
+
+
 </script>
 <style>
 .custom-size {
   height: 64px;
   width: 64px;
 }
+
+
 
 
 

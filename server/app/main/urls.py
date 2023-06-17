@@ -23,11 +23,18 @@ urlpatterns = [
     path("api/army_list/create_army", create_army, name="create_army"),
     path("api/army_list/get_army", get_army, name="get_army"),
     path("api/army_list/save_army", save_army, name="save_army"),
+    path("api/army_list/set_current_version", set_current_version, name="set_current_version"),
+    path("api/army_list/delete_army", delete_army, name="delete_army"),
+    path("api/army_list/is_public_army", is_public_army, name="is_public_army"),
+
     path("api/get_item_types", get_item_types, name="get_item_types"),
     path("api/get_spell_types", get_spell_types, name="get_spell_types"),
     path("api/get_spell_durations", get_spell_durations, name="get_spell_durations"),
     path("api/get_unit_types", get_unit_types, name="get_unit_types"),
     path("api/get_unit_heights", get_unit_heights, name="get_unit_heights"),
+    path("api/login", custom_login, name="custom_login"),
+    path("api/logout", custom_logout, name="custom_logout"),
+    path("api/is_logged_in", is_logged_in, name="is_logged_in"),
     path('api/admin/', admin.site.urls),
     path('api/get_token', get_csrf_token)
 

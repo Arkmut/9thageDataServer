@@ -6,10 +6,15 @@ import { ValidationProvider } from 'vee-validate';
 
 import App from './App.vue'
 import ArmyEditor from './components/ArmyEditor.vue'
+import LoginView from './components/LoginView.vue'
+import LogoutView from './components/LogoutView.vue'
+
 
 //router
 const routes = [
   { path: '/', component: App },
+  { path: '/logout', component: LogoutView },
+  { path: '/login', component: LoginView },
   { path: '/army/:name/:version', component: ArmyEditor, props: route => ({ ...route.params }) },
 ]
 const router = new VueRouter({

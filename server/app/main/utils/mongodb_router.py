@@ -21,6 +21,8 @@ def get(collection: str, dict_index: dict):
     return db_handle[collection].find(dict_index)
 def update(collection: str,dict_index: dict, update_dict: dict):
     return db_handle[collection].update_one(dict_index,update_dict)
+def delete(collection: str,dict_index: dict):
+    return db_handle[collection].delete_one(dict_index)
 
 def create_collection(collection: str, schema: dict, indexes: [tuple]):
     db_handle.create_collection(collection, validator=schema)
