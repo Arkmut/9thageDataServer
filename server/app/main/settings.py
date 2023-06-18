@@ -29,6 +29,8 @@ CORS_ORIGIN_ALLOW_ALL = False
 CORS_ORIGIN_WHITELIST = (
     'http://localhost:8000',
 )
+CSRF_TRUSTED_ORIGINS = ["http://localhost:8000"]
+
 # Application definition
 
 INSTALLED_APPS = [

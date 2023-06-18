@@ -29,6 +29,7 @@ FROM python:3.9-slim
 
 # create directory for the app user
 RUN mkdir -p /home/app
+RUN chmod 777 /tmp
 
 # create the app user
 RUN groupadd app && useradd -g app -s /bin/sh app
@@ -42,7 +43,12 @@ WORKDIR $APP_HOME
 
 # install dependencies
 RUN apt-get update
-RUN apt-get -y install netcat-traditional
+RUN apt-get -y install netcat-traditional texlive texlive-luatex texlive-latex-extra
+#cache for lualatex
+RUN mkdir -p $APP_HOME/.texlive2019/texmf-var/luatex-cache/generic
+ENV TEXMFVAR=$APP_HOME/.texlive2019/texmf-var
+RUN chmod -R 755 $APP_HOME/.texlive2019
+
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
 RUN pip install --no-cache /wheels/*

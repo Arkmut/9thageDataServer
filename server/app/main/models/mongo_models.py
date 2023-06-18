@@ -479,14 +479,14 @@ if not collection_exists("ArmyBooks"):
     }, [("name", pymongo.ASCENDING), ("version", pymongo.DESCENDING)])
 
 
-def get_armybooks(user_known:bool,public_armies:{}):
+def get_armybooks(user_known: bool, public_armies: {}):
     if user_known:
         return list(get_all("ArmyBooks"))
     else:
         res = []
         for el in public_armies.keys():
-            army = get_army(el,public_armies[el])
-            if len(army)>0:
+            army = get_army(el, public_armies[el])
+            if len(army) > 0:
                 res.append(army[0])
         return res
 
@@ -538,5 +538,38 @@ def army_check(army):
 def save_army(name: str, version: str, army: {}):
     return update("ArmyBooks", {'name': name, 'version': version}, {'$set': army})
 
+
 def delete_army(name: str, version: str):
     return delete("ArmyBooks", {'name': name, 'version': version})
+
+
+RSC_PATH_BALISE = "$RSC_PATH$"
+RSC_PATH = "./rsc"
+ARMY_NAME_TAG_BALISE = "$ARMY_NAME_TAG$"
+ARMY_NAME_BALISE = "$ARMY_NAME$"
+ARMY_VERSION_BALISE = "$ARMY_VERSION$"
+CURRENT_DATE_BALISE = "$CURRENT_DATE$"
+ARMY_INITIALS_BALISE = "$ARMY_INITIALS$"
+CHANGELOG_BALISE = "$CHANGELOG$"
+
+
+def format_template(army: {}, date, date_format, template: str):
+    name_tag = army['name'].replace(" ", "_").lower()
+    name_initials = ""
+    for el in army['name'].split(" "):
+        name_initials += el.upper()[0]
+    template = template.replace(RSC_PATH_BALISE, RSC_PATH)
+    template = template.replace(ARMY_NAME_TAG_BALISE, name_tag)
+    template = template.replace(ARMY_NAME_BALISE, army['name'])
+    template = template.replace(ARMY_VERSION_BALISE, army['version'])
+    template = template.replace(CURRENT_DATE_BALISE, date.strftime(date_format))
+    template = template.replace(ARMY_INITIALS_BALISE, name_initials)
+    # TODO changelog
+    changelog = ""
+    template = template.replace(CHANGELOG_BALISE, changelog)
+
+    return template
+
+
+def generate_filename(army: {}):
+    return army['name'].replace(" ", "_").lower() + ".pdf"

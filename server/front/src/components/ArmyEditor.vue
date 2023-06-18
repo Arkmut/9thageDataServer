@@ -14,6 +14,7 @@
                 <div class="navbar-end">
                     <div class="navbar-item">
                         <button class="button" @click="saveArmy">Save</button>
+                        <button class="button" @click="downloadArmy">Download PDF</button>
                     </div>
 
                 </div>
@@ -155,7 +156,33 @@ import ObjectEditor from './editor/ObjectEditor.vue'
                     console.log(error);
                 }
             },
-
+            async downloadArmy() {
+                try {
+                    // Send a POST request to the API
+                        const response = await this.$http.post('http://localhost:8000/api/army_list/download_army', {
+                        name: this.$route.params.name,
+                        version: this.$route.params.version
+                        }, {
+                          headers: {
+                            'Content-Type': 'application/json', // Set the content type here
+                          },
+                            responseType: 'arraybuffer', // Set the response type to arraybuffer to receive binary data
+                        });
+                    const blob = new Blob([response.data], { type: 'application/pdf' })
+                    const disposition = response.headers['content-disposition'];
+                    const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                    const matches = filenameRegex.exec(disposition);
+                    const filename = matches !== null && matches[1] ? matches[1].replace(/['"]/g, '') : 'filename.pdf';
+                    const link = document.createElement('a')
+                    link.href = URL.createObjectURL(blob)
+                    link.download = filename
+                    link.click()
+                    URL.revokeObjectURL(link.href)
+                } catch (error) {
+                    // Log the error
+                    console.log(error);
+                }
+            },
            addToArray(array, element){
             array.push(element);
            },

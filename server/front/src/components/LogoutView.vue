@@ -35,7 +35,6 @@
         },
         created() {
                 this.timeout(3000);
-                console.log("hello");
                 this.$router.push({ path: `/`}).catch(()=>{});
 
         }

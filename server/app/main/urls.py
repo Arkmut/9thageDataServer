@@ -22,6 +22,7 @@ urlpatterns = [
     path("api/army_list", army_list, name="army_list"),
     path("api/army_list/create_army", create_army, name="create_army"),
     path("api/army_list/get_army", get_army, name="get_army"),
+    path("api/army_list/download_army", download_army, name="download_army"),
     path("api/army_list/save_army", save_army, name="save_army"),
     path("api/army_list/set_current_version", set_current_version, name="set_current_version"),
     path("api/army_list/delete_army", delete_army, name="delete_army"),

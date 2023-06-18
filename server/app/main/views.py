@@ -3,11 +3,13 @@ from bson.json_util import dumps, loads
 import logging
 import django
 from django.shortcuts import render, redirect
+
+from .latex_exporter.army_book_exporter import export_armybook
 from .models import *
 from .models.sql_models import PublicArmy
 from .utils.object_viewer import *
 from django.http import (HttpResponse, HttpResponseBadRequest,
-                         HttpResponseForbidden, JsonResponse)
+                         HttpResponseForbidden, JsonResponse,FileResponse)
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 
@@ -24,7 +26,7 @@ def army_list(request):
         userKnown = request.user.is_authenticated
         publicArmies = {}
         for ar in PublicArmy.objects.all():
-            logger_view.info("ar",ar)
+            logger_view.info("ar", ar)
             publicArmies[ar.name] = ar.version
         armies = get_armybooks(userKnown, publicArmies)
         if not userKnown:
@@ -137,6 +139,28 @@ def delete_army(request):
         PublicArmy.objects.get(name=name).delete()
         mongo_models.delete_army(name, version)
         return HttpResponse("{}", content_type="application/json")
+
+
+def download_army(request):
+    if request.method == 'POST':
+        body_unicode = request.body.decode('utf-8')
+        body = loads(body_unicode)
+        name = body["name"]
+        version = body["version"]
+        if name == "" or version == "":
+            return HttpResponseBadRequest(f"name is empty: {name} or version is empty {version}", status=500)
+        userKnown = request.user.is_authenticated
+        if not userKnown:
+            armies = PublicArmy.objects.filter(name=name, version=version)
+            if len(armies) == 0:
+                return HttpResponseBadRequest(f"You need to be logged in to see this", status=401)
+        #TODO language
+        language = "en"
+        (pdf, log, completed_process),filename = export_armybook(name, language, mongo_models.get_army(name, version)[0],
+                                                        LatexTemplate.objects.filter(name=name)[0])
+        response = HttpResponse(pdf, content_type="application/pdf")
+        response['Content-Disposition'] = 'inline; filename=' + filename
+        return response
 
 
 def get_item_types(request):
