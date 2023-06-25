@@ -27,8 +27,10 @@ urlpatterns = [
     path("api/army_list/set_current_version", set_current_version, name="set_current_version"),
     path("api/army_list/delete_army", delete_army, name="delete_army"),
     path("api/army_list/is_public_army", is_public_army, name="is_public_army"),
+    path("api/army_list/parse_translation", parse_translation, name="parse_translation"),
 
     path("api/get_item_types", get_item_types, name="get_item_types"),
+    path("api/get_rule_types", get_rule_types, name="get_rule_types"),
     path("api/get_spell_types", get_spell_types, name="get_spell_types"),
     path("api/get_spell_durations", get_spell_durations, name="get_spell_durations"),
     path("api/get_unit_types", get_unit_types, name="get_unit_types"),

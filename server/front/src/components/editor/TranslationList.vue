@@ -5,6 +5,7 @@
                 <div class="is-align-self-flex-start">
                     <h2 class="subtitle">{{language}}</h2>
                 </div>
+
                 <div class="ml-auto">
                     <input class="input" type="text" name="name"
                            :id="'newTranslationEntryName_'+language"
@@ -29,10 +30,23 @@
                         </div>
                     </button>
                 </div>
+
                 <div class="">
                     <button class="button" @click="rmTranslation($event)"
                             v-show="language !== 'en'">-
                     </button>
+                </div>
+            </div>
+            <div class="is-flex">
+
+                <div class="">
+                    <button class="button" @click="loadTranslation">Load LateX</button>
+                </div>
+                <div class="is-2"/>
+                <div class="is-8"><textarea class="textarea" name="name" rows="3"
+                                        id="latex_data"
+                                        v-model="latex"
+                                        placeholder="LateX values"></textarea>
                 </div>
             </div>
         </div>
@@ -50,11 +64,11 @@
                                             <div class="subtitle is-6">{{keyLine}}
                                             </div>
                                         </div>
-                                        <div class=""><input class="input" type="text" name="name"
-                                                             id="loc_line_value"
-                                                             :value="translations[keyLine]"
-                                                             @input="updateTranslation($event,keyLine)"
-                                                             placeholder="Translation entry text"/>
+                                        <div class=""><textarea class="textarea" name="name" rows="3"
+                                                                id="loc_line_value"
+                                                                :value="translations[keyLine]"
+                                                                @input="updateTranslation($event,keyLine)"
+                                                                placeholder="Translation entry text"></textarea>
                                         </div>
 
                                     </div>
@@ -86,6 +100,7 @@
             return {
                 translationsEntriesExpanded : false,
                 newTranslationEntryName: "entry",
+                latex:"",
                
             }
         },
@@ -123,11 +138,33 @@
             updateTranslation(event,keyLine){
                 this.$emit('addTranslationEntry',{key:keyLine,value:event.target.value});
             },
+            async loadTranslation(){
+                try {
+                    // Send a POST request to the API
+                       const response =  await this.$http.post('http://localhost:8000/api/army_list/parse_translation', {
+                        latex:this.latex
+                        });
+                    for(let i =0;i<Object.keys(response.data).length;i++){
+                        let key= Object.keys(response.data)[i];
+                        this.newTranslationEntryName =key;
+                        if(!(key in this.translations)){
+                            this.addTranslationEntry();
+                        }
+                        this.updateTranslation({target:{value:response.data[key]}},key);
+
+                    }
+
+                } catch (error) {
+                    // Log the error
+                    console.log(error);
+                }
+            },
 
 
         },
         
     }
+
 
 
 
@@ -158,6 +195,7 @@
   height: 64px;
   width: 64px;
 }
+
 
 
 

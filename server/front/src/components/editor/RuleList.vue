@@ -42,6 +42,13 @@
                                                              v-model="rule.name"
                                                              placeholder="Special rule name"/>
                                         </div>
+                                        <div class="">
+                                            <EnumEditor
+                                                    :value="rule.type"
+                                                    :enumList="types"
+                                                    @updateValue="updateType(rule,$event)"
+                                            />
+                                        </div>
                                         <div class=""><input class="input" type="text" name="def"
                                                              id="rule_def"
                                                              v-model="rule.definition"
@@ -69,7 +76,12 @@
     </div>
 </template>
 <script>
+import EnumEditor from './EnumEditor.vue'
+
     export default {
+        components:{
+            EnumEditor,
+        },
         props: {
             titleRuleList: { type: String, required: true },
             rules: { type: Array, required: true },
@@ -77,7 +89,7 @@
         data() {
             return {
                 rulesExpanded: false,
-               
+               types:[],
             }
         },
         methods: {
@@ -88,7 +100,7 @@
             },
             
             addRule(){
-                this.$emit('add',{name:"",rules:""});
+                this.$emit('add',{name:"",rules:"",type:"universal"});
                 this.rulesExpanded=true;
 
             },
@@ -102,11 +114,27 @@
                 this.rulesExpanded = this.rules.length>0;
 
             },
-            
+            async getEnums() {
+                try {
+                    // Send a POST request to the API
+                    const response = await this.$http.post('http://localhost:8000/api/get_rule_types');
+                    this.types = response.data;
+                } catch (error) {
+                    // Log the error
+                    console.log(error);
+                }
 
+            },
+            updateType(rule,event){
+                this.$set(rule,'type',event);
+            },
         },
-        
+        created(){
+            this.getEnums();
+        }
     }
+
+
 
 
 
@@ -134,6 +162,8 @@
   height: 64px;
   width: 64px;
 }
+
+
 
 
 

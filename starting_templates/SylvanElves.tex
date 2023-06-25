@@ -1,13 +1,14 @@
 
 \def\thisisanarmybook{}
 %\def\noprintpoints{}
-
+$LANGUAGE_DEF$
 % Preamble
 \documentclass[a4paper,10pt]{article}
 \usepackage{import}
 $INIT_SUB_IMPORTS$
+\subimport{$RSC_PATH$/Layout/}{Layout.tex}
 \graphicspath{{$RSC_PATH$/$ARMY_NAME_TAG$/pics/}{$RSC_PATH$/Layout/pics/}{$RSC_PATH$/Arcane_Compendium/pics/}}
-
+$LANGUAGE_DATA$
 \newcommand{\editionversion}{\nth{2} Edition}
 \newcommand{\booktitle}{$ARMY_NAME$}
 \newcommand{\balanceversion}{$ARMY_VERSION$}

@@ -74,7 +74,12 @@ import TranslationList from './TranslationList.vue'
                 if(this.newTranslationName in this.translations){
                     return;
                 }
-                this.$emit('addTranslation',{key:this.newTranslationName,value:{}});
+                let obj = this.translations['en'];
+                //we copy the english by default
+                for(let i =0; i<Object.keys(obj).length;i++){
+                    obj[Object.keys(obj)[i]] = "";
+                }
+                this.$emit('addTranslation',{key:this.newTranslationName,value:obj});
                 this.newTranslationName = "Language"
 
                 this.translationsExpanded=true;

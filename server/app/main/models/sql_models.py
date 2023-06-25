@@ -1,5 +1,7 @@
+import logging
+
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
+from django_better_admin_arrayfield.models.fields import ArrayField
 
 SUB_IMPORT_BALISE = "$INIT_SUB_IMPORTS$"
 TITLE_IMPORT_BALISE = "$TITLE_IMPORT$"
@@ -9,6 +11,7 @@ BOOK_SUB_IMPORT_BALISE = "$BOOK_SUB_IMPORT$"
 class PublicArmy(models.Model):
     name = models.CharField(unique=True, primary_key=True, blank=False)
     version = models.CharField(blank=False)
+
 
 
 class Spaces(models.TextChoices):

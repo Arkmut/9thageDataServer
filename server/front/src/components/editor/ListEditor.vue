@@ -49,6 +49,7 @@
                                                     :titleLevel="subtitle"
                                                     :enums="enums"
                                                     @updateValue="updateSubValue(index,$event)"
+                                                    @deleteField="deleteSubField(index,$event)"
                                             />
 
 
@@ -156,6 +157,11 @@ import EnumEditor from './EnumEditor.vue'
            updateSubValue(index,event){
                 let tmp = this.value[index];
                 tmp[event.key] = event.value;
+                this.updateValue(index,tmp);
+            },
+            deleteSubField(index,event){
+                let tmp = this.value[index];
+                delete tmp[event.key];
                 this.updateValue(index,tmp);
             },
             addElement(){

@@ -24,16 +24,26 @@
             </div>
         </section>
 
-        <v-collapse-wrapper class="columns is-flex-direction-column">
-            <div v-for="(key) in Object.keys(value)" :key="key"
-                 v-show="valueExpanded || alwaysExpanded">
+        <v-collapse-wrapper class="columns is-flex-direction-column" v-show="valueExpanded || alwaysExpanded">
+            <div class="is-flex">
+                <div v-for="(key) in Object.keys(optionalValues)" :key="key">
+                    <template v-if="!((typeof value[key]) === 'object')">
+                        <div class="">
+                            <button class="button" @click="addField(key,optionalValues[key])">add
+                                {{key}}
+                            </button>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            <div v-for="(key) in Object.keys(value)" :key="key">
                 <div class="block">
                     <div class="card">
                         <div class="card-content">
 
                             <div class="columns is-flex is-align-items-center">
                                 <div class="column is-1"/>
-                                <div class="column is-10">
+                                <div class="column is-9">
                                     <template v-if="(typeof value[key]) === 'object'">
                                         Error!! no nested component here
                                     </template>
@@ -49,6 +59,28 @@
                                                 </label>
                                             </div>
                                         </div>
+                                    </template>
+                                    <template v-else-if="(typeof value[key]) === 'number'">
+                                        <div class="columns is-flex is-align-items-center">
+                                            <div class="column is-flex is-6">
+                                                <div class="columns is-flex is-justify-content-space-evenly is-align-items-center">
+                                                    <div class="column is-flex">
+                                                        <label>
+                                                            {{key}}
+                                                        </label>
+                                                    </div>
+
+                                                    <div class="column is-flex"><input class="input"
+                                                                                       type="number"
+                                                                                       name="def"
+                                                                                       :value="value[key]"
+                                                                                       @input="event => updateValue(key,Number(event.target.value))"
+                                                                                       placeholder="0"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     </template>
 
                                     <template v-else>
@@ -80,6 +112,13 @@
                                     </template>
 
                                 </div>
+                                <div class="column is-1"
+                                     v-show="key in optionalValues && !((typeof value[key]) === 'object')">
+                                    <button class="button" @click="deleteField(key)"
+                                    >-
+                                    </button>
+                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -103,6 +142,7 @@ import EnumEditor from './EnumEditor.vue'
         props: {
             value: { type: Object, required: true },
             defaultValues: { type: Object, required: true },
+            optionalValues: { type: Object, default:() => ({}) },
             titleValue:{type: String, required: true },
             titleLevel:{type: String, required: true },
             alwaysExpanded:{type:Boolean,default:false},
@@ -124,7 +164,22 @@ import EnumEditor from './EnumEditor.vue'
             updateValue(key,value){
                 this.$emit("updateValue",{key:key,value:value});
             },
+            addField(key,value){
+                this.updateValue(key,value);
+                this.$forceUpdate();
+            },
 
+            deleteField(key){
+                this.$emit("deleteField",{key:key});
+                this.$forceUpdate();
+            },
+            getOptional(key){
+                if(key in this.optionalValues){
+                    return this.optionalValues[key];
+                }else{
+                    return {}
+                }
+            },
 
         },
 

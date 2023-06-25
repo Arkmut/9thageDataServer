@@ -4,3 +4,4 @@ gunicorn
 pymongo
 dnspython
 django-cors-headers
+django-better-admin-arrayfield

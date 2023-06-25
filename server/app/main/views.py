@@ -140,6 +140,16 @@ def delete_army(request):
         mongo_models.delete_army(name, version)
         return HttpResponse("{}", content_type="application/json")
 
+@login_required(login_url='/login/')
+def parse_translation(request):
+    if request.method == 'POST':
+        body_unicode = request.body.decode('utf-8')
+        body = loads(body_unicode)
+        latex = body["latex"]
+        if latex == "":
+            return HttpResponseBadRequest(f"latex is empty {latex}", status=500)
+        mongo_models.parse_translation(latex)
+        return HttpResponse(dumps(mongo_models.parse_translation(latex)), content_type="application/json")
 
 def download_army(request):
     if request.method == 'POST':
@@ -187,7 +197,9 @@ def get_unit_heights(request):
     if request.method == 'POST':
         return HttpResponse(dumps(mongo_models.UNIT_HEIGHTS), content_type="application/json")
 
-
+def get_rule_types(request):
+    if request.method == 'POST':
+        return HttpResponse(dumps(mongo_models.RULE_TYPES), content_type="application/json")
 def custom_logout(request):
     logout(request)
     return HttpResponse("{}", content_type="application/json")

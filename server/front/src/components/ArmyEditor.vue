@@ -45,10 +45,12 @@
                 <ObjectEditor
                         :value="army.hereditarySpell"
                         :defaultValues="defaultHereditarySpell"
+                        :optionalValues="optionalHereditary"
                         :titleValue="'Hereditary Spell'"
                         :titleLevel="'title'"
                         :enums="enumHereditary"
                         @updateValue="addToObject(army.hereditarySpell,$event)"
+                        @deleteField="deleteField(army.hereditarySpell,$event)"
                 />
                 <!-- Special items-->
                 <ItemList :items="army.specialItems.items" titleItemList="Special items"
@@ -101,11 +103,16 @@ import ObjectEditor from './editor/ObjectEditor.vue'
                 army: null,
                 defaultHereditarySpell:{
                     castingValue:{
-                        "base":0
+                        "base":0,
                     },
                     types:"",
                 },
                 enumHereditary:{
+                },
+                optionalHereditary:{
+                    castingValue:{
+                        "boosted":0,
+                    },
                 },
 
             }

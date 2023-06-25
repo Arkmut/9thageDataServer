@@ -38,5 +38,5 @@ def latex_topdf_from_string(latex: str):
 
 def export_armybook(name: str, language: str, army: {}, template: LatexTemplate):
     latex = template.getWithSubImports()
-    formattedLatex = format_template(army, template.lastModified, "%d %M, %Y", latex)
+    formattedLatex = format_template(army, template.lastModified, "%d %B, %Y", latex,language)
     return latex_topdf_from_string(formattedLatex), generate_filename(army)

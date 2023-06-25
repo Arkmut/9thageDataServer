@@ -1,11 +1,14 @@
 from ..utils.mongodb_router import *
 import pymongo
+import re
 
 SPELL_TYPES = ["augment", "hex", "direct", "projectile", "aura", "focused", "damage"]
 SPELL_DURATIONS = ["oneTurn", "permanent", "instant"]
 ITEM_TYPES = ["weapon", "armour", "banner", "artefact"]
 UNIT_TYPES = ["infantry", "cavalry", "beast", "construct"]
 UNIT_HEIGHTS = ["standard", "large", "gigantic"]
+RULE_TYPES = ["universal", "attack_attributes/shooting", "armoury/armour",
+              "armoury/shootingweapon", "armoury/closecombatweapon"]
 
 # armybook
 if not collection_exists("ArmyBooks"):
@@ -44,6 +47,11 @@ if not collection_exists("ArmyBooks"):
                                         "bsonType": "string",
                                         "description": "'name' is required"
                                     },
+                                    "type": {
+                                        "bsonType": "string",
+                                        "description": "'type' is required",
+                                        "enum": RULE_TYPES
+                                    },
                                     "definition": {
                                         "bsonType": "string",
                                         "description": "'definition' is required"
@@ -68,6 +76,11 @@ if not collection_exists("ArmyBooks"):
                                     "name": {
                                         "bsonType": "string",
                                         "description": "'name' is required"
+                                    },
+                                    "type": {
+                                        "bsonType": "string",
+                                        "description": "'type' is required",
+                                        "enum": RULE_TYPES
                                     },
                                     "definition": {
                                         "bsonType": "string",
@@ -551,10 +564,25 @@ ARMY_VERSION_BALISE = "$ARMY_VERSION$"
 CURRENT_DATE_BALISE = "$CURRENT_DATE$"
 ARMY_INITIALS_BALISE = "$ARMY_INITIALS$"
 CHANGELOG_BALISE = "$CHANGELOG$"
+LANGUAGE_DEF_BALISE = "$LANGUAGE_DEF$"
+LANGUAGE_BALISE = "$LANGUAGE$"
+LANGUAGE_DATA_BALISE = "$LANGUAGE_DATA$"
+ARMY_SPECIFIC_RULES_BALISE = "$ARMY_SPECIFIC_RULES$"
+MODEL_RULES_UNIVERSAL_BALISE = "$MODEL_RULES_UNIVERSAL$"
+MODEL_RULES_AA_BALISE = "$MODEL_RULES_AA$"
+MODEL_RULES_ARMOURY_BALISE = "$MODEL_RULES_ARMOURY$"
+HE_SPELL_NAME_BALISE = "$HE_SPELL_NAME$"
+HE_BASE_VALUE_BALISE = "$HE_BASE_VALUE$"
+HE_BOOSTED_VALUE_BALISE = "$HE_BOOSTED_VALUE$"
+HE_RANGE_BALISE = "$HE_RANGE$"
+HE_TYPES_BALISE = "$HE_TYPES$"
+HE_DURATION_BALISE = "$HE_DURATION$"
+HE_EFFECT_BALISE = "$HE_EFFECT$"
 
 
-def format_template(army: {}, date, date_format, template: str):
+def format_template(army: {}, date, date_format, template: str, language: str):
     name_tag = army['name'].replace(" ", "_").lower()
+    language_tag = language.upper()
     name_initials = ""
     for el in army['name'].split(" "):
         name_initials += el.upper()[0]
@@ -564,6 +592,12 @@ def format_template(army: {}, date, date_format, template: str):
     template = template.replace(ARMY_VERSION_BALISE, army['version'])
     template = template.replace(CURRENT_DATE_BALISE, date.strftime(date_format))
     template = template.replace(ARMY_INITIALS_BALISE, name_initials)
+    template = template.replace(LANGUAGE_DEF_BALISE, gen_language_def(language))
+    template = template.replace(LANGUAGE_BALISE, language_tag)
+    template = template.replace(LANGUAGE_DATA_BALISE, gen_language_data(language, army))
+    template = template.replace(ARMY_SPECIFIC_RULES_BALISE, gen_army_specific_rules(army))
+    template = gen_model_rules(army, template)
+    template = gen_hereditary(army, template)
     # TODO changelog
     changelog = ""
     template = template.replace(CHANGELOG_BALISE, changelog)
@@ -571,5 +605,133 @@ def format_template(army: {}, date, date_format, template: str):
     return template
 
 
+def gen_language_def(language):
+    # TODO switch with language
+    return "\\def\\languageisenglish{}"
+
+
+def gen_language_data(language: str, army: {}):
+    loc_table = army['loc'][language]
+    res = ""
+    for el in loc_table.keys():
+        params = ""
+        if "#" in loc_table[el]:
+            paramsInText = re.findall(r"#([0-9]+)", loc_table[el])
+            paramsInt = [int(el) for el in paramsInText]
+            params = "[" + str(max(paramsInt)) + "]"
+        res += "\\newcommand{" + el + "}" + params + "{" + loc_table[el] + "}\n"
+    return res
+
+
 def generate_filename(army: {}):
     return army['name'].replace(" ", "_").lower() + ".pdf"
+
+
+def gen_army_specific_rules(army: {}):
+    res = ""
+    for el in army['armyRules']['rules']:
+        res += "\\AMRsortedlistentry{" + el['name'] + "{}}{" + el['definition'] + "}\n"
+    return res
+
+
+def gen_model_rules(army: {}, template: str):
+    rules = [rule for rule in army['modelRules']['rules'] if rule['type'] == "universal"]
+    template = template.replace(MODEL_RULES_UNIVERSAL_BALISE,
+                                gen_model_rules_internal(rules, "\\universalrules", ""))
+
+    rules = [rule for rule in army['modelRules']['rules'] if "attack_attributes" in rule['type']]
+    template = template.replace(MODEL_RULES_AA_BALISE,
+                                gen_model_rules_internal(rules, "\\attackattributes", ["shooting"]))
+
+    rules = [rule for rule in army['modelRules']['rules'] if "armoury" in rule['type']]
+    template = template.replace(MODEL_RULES_ARMOURY_BALISE,
+                                gen_model_rules_internal(rules, "\\armoury",
+                                                         ["armour", "shootingweapon", "closecombatweapon"]))
+
+    return template
+
+
+def gen_model_rules_internal(rule_list: [], subtitle: str, subtypes: [str]):
+    res = "\\subtitle{" + subtitle + "}\n"
+    if len(subtypes) > 0:
+        for st in subtypes:
+            subtype_str = "[\\" + st + "]"
+            res += "\\startAMRsortedlist\n"
+            sublist = [r for r in rule_list if st in r['type']]
+            for el in sublist:
+                res += "\\AMRsortedlistentry" + subtype_str + "{" + el['name'] + "{}}{" + el['definition'] + "}\n"
+            res += "\\closeAMRsortedlist\n"
+
+    else:
+        res += "\\startAMRsortedlist\n"
+        for el in rule_list:
+            res += "\\AMRsortedlistentry{" + el['name'] + "{}}{" + el['definition'] + "}\n"
+        res += "\\closeAMRsortedlist\n"
+    return res
+
+
+def gen_spell_type(el:str):
+    return "\\"+el.lower()
+
+
+def gen_spell_duration(param:str):
+    return "\\"+param.lower()
+
+
+def gen_hereditary(army: {}, template: str):
+    template = template.replace(HE_SPELL_NAME_BALISE, army['hereditarySpell']['name'])
+    template = template.replace(HE_BASE_VALUE_BALISE, str(army['hereditarySpell']['castingValue']['base'])+"+")
+    if 'boosted' in army['hereditarySpell']['castingValue']:
+        template = template.replace(HE_BOOSTED_VALUE_BALISE,  str(army['hereditarySpell']['castingValue']['boosted'])+"+")
+    else:
+        template = template.replace(HE_BOOSTED_VALUE_BALISE, "")
+    template = template.replace(HE_RANGE_BALISE,  str(army['hereditarySpell']['range']))
+    types = ""
+    for el in army['hereditarySpell']['types']:
+        types += "\\HStype{" + gen_spell_type(el) + "}\n"
+    template = template.replace(HE_TYPES_BALISE, types)
+    template = template.replace(HE_DURATION_BALISE, gen_spell_duration(army['hereditarySpell']['duration']))
+    template = template.replace(HE_EFFECT_BALISE, army['hereditarySpell']['effect'])
+
+    return template
+
+
+def parse_translation(latex: str):
+    data = {}
+    lines = latex.split('\n')
+    lines = [l for l in lines if l not in ["\n"]]
+    searchingClosingBrace = False
+    currentTranslation = ""
+    currentValue = ""
+    openingBraceCounter = 0
+    closingBraceCounter = 0
+    for l in lines:
+        if not searchingClosingBrace:
+            newcommand_tag = "\\newcommand{"
+            if newcommand_tag not in l:
+                continue
+            currentTranslation = l[l.index(newcommand_tag) + len(newcommand_tag):l.index("}")]
+            l = l[l.index("}") + 1:]
+            openingBraceCounter = l.count('{')
+            closingBraceCounter = l.count('}')
+            if openingBraceCounter > closingBraceCounter:
+                searchingClosingBrace = True
+                currentValue += "\n" + l[l.index('{') + 1:]
+            else:
+                data[currentTranslation] = l[l.index('{') + 1:l.rindex("}")]
+        else:
+            openingBraceCounter += l.count('{')
+            closingBraceCounter += l.count('}')
+            if openingBraceCounter > closingBraceCounter:
+                searchingClosingBrace = True
+                currentValue += "\n" + l
+            else:
+                currentValue += "\n" + l[0:l.rindex("}")]
+                data[currentTranslation] = currentValue
+                currentValue = ""
+                currentTranslation = ""
+                searchingClosingBrace = False
+                openingBraceCounter = 0
+                closingBraceCounter = 0
+
+    return data

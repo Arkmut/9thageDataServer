@@ -1,0 +1,29 @@
+
+\ifdefined\languageisenglish
+	\def\languagetag{EN}
+\fi
+\ifdefined\languageisfrench
+	\def\languagetag{FR}
+\fi
+\ifdefined\languageisitalian
+	\def\languagetag{IT}
+\fi
+\ifdefined\languageisspanish
+	\def\languagetag{ES}
+\fi
+\ifdefined\languageispolish
+	\def\languagetag{PL}
+\fi
+\ifdefined\languageisrussian
+	\def\languagetag{RU}
+\fi
+\ifdefined\languageisgerman
+	\def\languagetag{DE}
+\fi
+
+\def\pathlanguagespecific{../Language_specific/\languagetag/}
+
+% Command related to automatized alphabetical ordering, language specific
+
+\input{\pathlanguagespecific%
+alphabeticalordering.tex}

@@ -45,6 +45,7 @@
                                             :titleLevel="'subtitle'"
                                             :enums="enumItem"
                                             @updateValue="addToObject(item,$event)"
+                                            @deleteField="deleteField(item,$event)"
                                     />
                                 </div>
 
@@ -109,6 +110,9 @@ import ObjectEditor from './ObjectEditor.vue'
             },
             addToObject(obj, element){
                 this.$set(obj,element.key,element.value);
+           },
+           deleteField(obj, element){
+                this.$delete(obj,element.key);
            },
             addItem(){
                 this.$emit('add',{name:"",type:"weapon",cost:0,support:[],maxNb:1,dominant:false,restriction:"",rules:""});
