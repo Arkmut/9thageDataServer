@@ -41,6 +41,7 @@
                                     <ObjectEditor
                                             :value="unit"
                                             :defaultValues="defaultUnit"
+                                            :optionalValues="optionalUnit"
                                             :titleValue="unit.name"
                                             :titleLevel="'subtitle'"
                                             :enums="enumUnit"
@@ -48,15 +49,20 @@
                                             @deleteField="deleteField(unit,$event)"
                                     />
                                 </div>
-
                                 <div class="ml-auto">
+                                    <button class="button" @click="duplicateUnit(unit)"><span class="icon">
+                                    <i class="fas fa-copy" aria-hidden="true"></i>
+                                </span>
+                                    </button>
+                                </div>
+                                <div class="">
                                     <button class="button" @click="rmUnit($event,unit.name)">-
                                     </button>
                                 </div>
 
                             </div>
                             <div style="margin-bottom:30px"/>
-                            
+
                         </div>
                     </div>
                 </div>
@@ -84,8 +90,8 @@ import ObjectEditor from './ObjectEditor.vue'
                 defaultUnit:{
                     categories:"",
                     profile:{
-                        global:{rules:""},
-                        defense:{rules:""},
+                        global:{rules:{bsonType:"array",default:{name:"",equipment:false}}},
+                        defense:{rules:{bsonType:"array",default:{name:"",equipment:false}}},
                         offenses:{
                             name:"",
                             attacks:"",
@@ -93,16 +99,40 @@ import ObjectEditor from './ObjectEditor.vue'
                             strength:"",
                             ap:"",
                             agility:"",
-                            rules:"",
+                            rules:{bsonType:"array",default:{name:"",equipment:false}},
                         },
                     },
                     options:{
-
+                        bsonType:"array","default":{globalName:"",globalPrice:"",values:{ bsonType:"array","default":{name:"",price:""}}}
                     },
                 },
                 enumUnit:{
                 },
-               
+               optionalUnit:{
+                    restrictions:{
+                        maxPerArmy:1,
+                        sharedMaxPerArmy:1,
+                        maxModelsPerArmy:0,
+                        specialNote:"",
+                    },
+                    categoryChange:{
+                        "condition":"",
+                    },
+                    "maxunitsize":0,
+                    "costpermodel":0,
+
+                    options:{
+                        isMount:true,
+                        isMagic:true,
+                        isCommandGroup:true,
+                    },
+                    modelRules:{
+                        bsonType:"array","default":{name:"",rules:"",type:"universal"}
+                    },
+                    paths:{
+                        bsonType:"array","default":""
+                    },
+                },
             }
         },
        created() {
@@ -118,6 +148,15 @@ import ObjectEditor from './ObjectEditor.vue'
                     // Log the error
                     console.log(error);
                 }
+                try {
+                    // Send a POST request to the API
+                    const response = await this.$http.post('http://localhost:8000/api/get_rule_types');
+                    this.enumUnit['modelRules'] ={'type': response.data};
+                } catch (error) {
+                    // Log the error
+                    console.log(error);
+                }
+
                 try {
                     // Send a POST request to the API
                     const response = await this.$http.post('http://localhost:8000/api/get_unit_heights');
@@ -162,8 +201,14 @@ import ObjectEditor from './ObjectEditor.vue'
                                     },
                                 offenses:[],
                             },
-                        options:[],
+                            options:[],
                     });
+                this.unitsExpanded=true;
+
+            },
+            duplicateUnit(unit){
+                this.$emit('add',
+                    JSON.parse(JSON.stringify(unit)));
                 this.unitsExpanded=true;
 
             },
@@ -203,12 +248,14 @@ import ObjectEditor from './ObjectEditor.vue'
 
 
 
+
 </script>
 <style>
 .custom-size {
   height: 64px;
   width: 64px;
 }
+
 
 
 

@@ -5,7 +5,7 @@
             <nav class="navbar">
                 <div class="container">
                     <div class="navbar-brand">
-                        <a class="navbar-item">
+                        <a class="navbar-item" href="/">
                             <img src="https://www.the-ninth-age.com/squelettes/IMG/header_text_logo_gold_en.png"
                                  alt="Logo">
                         </a>

@@ -13,7 +13,7 @@
                            placeholder="entry"/>
                 </div>
                 <div class="">
-                    <button class="button" @click="addTranslationEntry">+</button>
+                    <button class="button" @click="addTranslationEntry(true)">+</button>
                 </div>
                 <div>
                     <button class="button" @click="toggleExpandTranslationsEntries"
@@ -37,13 +37,13 @@
                     </button>
                 </div>
             </div>
-            <div class="is-flex">
+            <div class="columns is-flex">
 
-                <div class="">
+                <div class="column is-2">
                     <button class="button" @click="loadTranslation">Load LateX</button>
                 </div>
-                <div class="is-2"/>
-                <div class="is-8"><textarea class="textarea" name="name" rows="3"
+                <div class="column is-2"/>
+                <div class="column is-8"><textarea class="textarea" name="name" rows="3"
                                         id="latex_data"
                                         v-model="latex"
                                         placeholder="LateX values"></textarea>
@@ -58,13 +58,13 @@
                         <div class="card-content">
 
                             <div class="columns is-flex is-align-items-center">
-                                <div class="column is-6">
+                                <div class="column is-10">
                                     <div class="columns is-flex is-justify-content-space-evenly is-align-items-center">
-                                        <div class="">
+                                        <div class="column is-2">
                                             <div class="subtitle is-6">{{keyLine}}
                                             </div>
                                         </div>
-                                        <div class=""><textarea class="textarea" name="name" rows="3"
+                                        <div class="column is-8"><textarea class="textarea" name="name" rows="3"
                                                                 id="loc_line_value"
                                                                 :value="translations[keyLine]"
                                                                 @input="updateTranslation($event,keyLine)"
@@ -111,15 +111,17 @@
                 this.$emit('rmTranslation',this.language);
             },
 
-            addTranslationEntry(){
+            addTranslationEntry(manual){
                 if(this.newTranslationEntryName in this.translations){
                     return;
                 }
                 this.$emit('addTranslationEntry',{key:this.newTranslationEntryName,value:""});
                 this.newTranslationEntryName="entry";
-                this.translationsEntriesExpanded=true;
-                let elmnt =document.getElementById('endTranslationEntry_'+this.language);
-                elmnt.scrollIntoView(true);
+                if(manual){
+                    //this.translationsEntriesExpanded=true;
+                    //let elmnt =document.getElementById('endTranslationEntry_'+this.language);
+                    //elmnt.scrollIntoView(true);
+                }
             },
             rmTranslationEntry(event,keyLine){
                 this.$emit('rmTranslationEntry', keyLine);
@@ -148,7 +150,7 @@
                         let key= Object.keys(response.data)[i];
                         this.newTranslationEntryName =key;
                         if(!(key in this.translations)){
-                            this.addTranslationEntry();
+                            this.addTranslationEntry(false);
                         }
                         this.updateTranslation({target:{value:response.data[key]}},key);
 

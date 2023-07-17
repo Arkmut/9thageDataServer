@@ -13,8 +13,27 @@
                 </div>
                 <div class="navbar-end">
                     <div class="navbar-item">
-                        <button class="button" @click="saveArmy">Save</button>
-                        <button class="button" @click="downloadArmy">Download PDF</button>
+                        <button :class="{ 'button is-success': saveSuccess==='success','button is-danger': saveSuccess==='failure', button: true }"
+                                @click="saveArmy">
+                            <template v-if="startDownloading">
+                                <div class="loader-wrapper is-active">
+                                    <div class="loader is-loading ml-auto mr-auto custom-size-spinner"></div>
+                                </div>
+                            </template>
+                            <template v-else>
+                                Save
+                            </template>
+                        </button>
+                        <button class="button" @click="downloadArmy" v-show="army.name!==translationName">
+                            <template v-if="startDownloading">
+                                <div class="loader-wrapper is-active">
+                                    <div class="loader is-loading ml-auto mr-auto custom-size-spinner"></div>
+                                </div>
+                            </template>
+                            <template v-else>
+                                Download PDF
+                            </template>
+                        </button>
                     </div>
 
                 </div>
@@ -34,40 +53,60 @@
 
                 <RuleList :rules="army.armyRules.rules" titleRuleList="Army Specific rules"
                           @add="addToArray(army.armyRules.rules,$event)"
-                          @rm="rmFromArray(army.armyRules.rules,$event)"/>
+                          @rm="rmFromArray(army.armyRules.rules,$event)" v-show="army.name!==translationName"/>
                 <!-- Model specific rules-->
                 <RuleList :rules="army.modelRules.rules" titleRuleList="Model Specific rules"
                           @add="addToArray(army.modelRules.rules,$event)"
-                          @rm="rmFromArray(army.modelRules.rules,$event)"/>
+                          @rm="rmFromArray(army.modelRules.rules,$event)" v-show="army.name!==translationName"/>
 
                 <!-- Hereditary spell-->
+                <div class="columns is-flex is-vcentered">
+                    <div class="column is-11">
+                        <ObjectEditor
+                                :value="army.hereditarySpell"
+                                :defaultValues="defaultHereditarySpell"
+                                :optionalValues="optionalHereditary"
+                                :titleValue="'Hereditary Spell'"
+                                :titleLevel="'title'"
+                                :enums="enumHereditary"
+                                @updateValue="addToObject(army.hereditarySpell,$event)"
+                                @deleteField="deleteField(army.hereditarySpell,$event)"
+                                v-show="army.name!==translationName &&  army.hasOwnProperty('hereditarySpell')"
+                        />
+                        <h1 class="title"
+                            v-show="army.name!==translationName && !(army.hasOwnProperty('hereditarySpell'))">No
+                            Hereditary</h1>
+                    </div>
+                    <div class="ml-auto" v-show="army.name!==translationName">
+                        <template v-if="army.hasOwnProperty('hereditarySpell')">
+                            <button class="button" @click="rmFromObject(army,'hereditarySpell')">-
+                            </button>
+                        </template>
+                        <template v-else>
+                            <button class="button" @click="addToObject(army,{key:'hereditarySpell',value:{name: '', castingValue: {base: 0},range: 0,types: [],duration: 'oneTurn',effect: ''}})">+
+                            </button>
+                        </template>
 
-                <ObjectEditor
-                        :value="army.hereditarySpell"
-                        :defaultValues="defaultHereditarySpell"
-                        :optionalValues="optionalHereditary"
-                        :titleValue="'Hereditary Spell'"
-                        :titleLevel="'title'"
-                        :enums="enumHereditary"
-                        @updateValue="addToObject(army.hereditarySpell,$event)"
-                        @deleteField="deleteField(army.hereditarySpell,$event)"
-                />
+                    </div>
+                </div>
+
                 <!-- Special items-->
                 <ItemList :items="army.specialItems.items" titleItemList="Special items"
                           @add="addToArray(army.specialItems.items,$event)"
-                          @rm="rmFromArray(army.specialItems.items,$event)"/>
+                          @rm="rmFromArray(army.specialItems.items,$event)" v-show="army.name!==translationName"/>
 
 
                 <!-- Army Organisation-->
                 <CategoryList :categories="army.armyOrganisation.categories"
                               titleCategoryList="Army organisation"
                               @add="addToArray(army.armyOrganisation.categories,$event)"
-                              @rm="rmFromArray(army.armyOrganisation.categories,$event)"/>
+                              @rm="rmFromArray(army.armyOrganisation.categories,$event)"
+                              v-show="army.name!==translationName"/>
 
                 <!-- units-->
                 <UnitList :units="army.armyList.units" titleUnitList="Units"
                           @add="addToArray(army.armyList.units,$event)"
-                          @rm="rmFromArray(army.armyList.units,$event)"/>
+                          @rm="rmFromArray(army.armyList.units,$event)" v-show="army.name!==translationName"/>
 
                 <!-- translations-->
                 <LanguageList :translations="army.loc"
@@ -100,6 +139,7 @@ import ObjectEditor from './editor/ObjectEditor.vue'
         },
         data() {
             return {
+            translationName:'global_translation',
                 army: null,
                 defaultHereditarySpell:{
                     castingValue:{
@@ -114,6 +154,8 @@ import ObjectEditor from './editor/ObjectEditor.vue'
                         "boosted":0,
                     },
                 },
+                saveSuccess:'',
+                startDownloading:false,
 
             }
         },
@@ -151,21 +193,32 @@ import ObjectEditor from './editor/ObjectEditor.vue'
             },
             async saveArmy() {
                 try {
+                    let army = JSON.parse(JSON.stringify(this.army));
+                    delete army["_id"];
                     // Send a POST request to the API
                         const response = await this.$http.post('http://localhost:8000/api/army_list/save_army', {
                         name: this.$route.params.name,
                         version: this.$route.params.version,
-                        army:this.army
+                        army:army
                         });
                     console.log(response.data);
+                    this.saveSuccess="success";
+                    setTimeout((function() {
+                        this.saveSuccess = '';
+                      }).bind(this), 1500);
                 } catch (error) {
                     // Log the error
                     console.log(error);
+                    this.saveSuccess="failure";
+                    setTimeout((function() {
+                        this.saveSuccess = '';
+                      }).bind(this), 1500);
                 }
             },
             async downloadArmy() {
                 try {
                     // Send a POST request to the API
+                    this.startDownloading = true;
                         const response = await this.$http.post('http://localhost:8000/api/army_list/download_army', {
                         name: this.$route.params.name,
                         version: this.$route.params.version
@@ -189,6 +242,7 @@ import ObjectEditor from './editor/ObjectEditor.vue'
                     // Log the error
                     console.log(error);
                 }
+                this.startDownloading = false;
             },
            addToArray(array, element){
             array.push(element);
@@ -222,29 +276,19 @@ import ObjectEditor from './editor/ObjectEditor.vue'
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 </script>
 <style>
-.custom-size {
-  height: 64px;
-  width: 64px;
+.custom-size-spinner {
+  height: 16px;
+  width: 16px;
 }
+
+
+
+
+
+
+
 
 
 

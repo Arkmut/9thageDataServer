@@ -1,2 +1,3 @@
 server/app/.env.prod
 .idea/
+/server/app/rsc/tmp_export/

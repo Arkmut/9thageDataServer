@@ -42,7 +42,7 @@
                                     <template v-if="(typeof element) === 'object'">
                                         <template v-if="element.constructor.name === 'Object'">
 
-                                            <SubObjectEditor
+                                            <SubObjectEditorLeaf
                                                     :value="element"
                                                     :defaultValues="defaultValues"
                                                     :titleValue="index"
@@ -121,13 +121,13 @@
     </div>
 </template>
 <script>
-import SubObjectEditor from './SubObjectEditor.vue'
+import SubObjectEditorLeaf from './SubObjectEditorLeaf.vue'
 import EnumEditor from './EnumEditor.vue'
 
 
     export default {
     components:{
-        SubObjectEditor,
+        SubObjectEditorLeaf,
         EnumEditor,
     },
         props: {
@@ -154,7 +154,7 @@ import EnumEditor from './EnumEditor.vue'
                 }
             },
            toggleExpandValue(){
-                console.log("enum in list: ",this.enums);
+                console.log("enum in sub list: ",this.enums);
                 this.valueExpanded = !this.valueExpanded;
 
             },
@@ -199,12 +199,10 @@ import EnumEditor from './EnumEditor.vue'
 
         },
  created(){
-        console.log("current default list: ",this.defaultValues, this.optionalValues);
-        if(this.enums.length>0){
-            console.log("list enum: ",this.enums);
+        console.log("current default sub list: ",this.defaultValues," enums: ",this.enums);
+
         }
     }
-}
 
 
 

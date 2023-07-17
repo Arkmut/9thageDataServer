@@ -9,11 +9,14 @@ from .models import *
 from .models.sql_models import PublicArmy
 from .utils.object_viewer import *
 from django.http import (HttpResponse, HttpResponseBadRequest,
-                         HttpResponseForbidden, JsonResponse,FileResponse)
+                         HttpResponseForbidden, JsonResponse, FileResponse)
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
+from django.db.models import Max
 
 logger_view = logging.getLogger(__name__)
+
+GLOBAL_TRANSLATION_NAME = "global_translation"
 
 
 def get_csrf_token(request):
@@ -136,9 +139,13 @@ def delete_army(request):
         version = body["version"]
         if name == "" or version == "":
             return HttpResponseBadRequest(f"name is empty: {name} or version is empty {version}", status=500)
-        PublicArmy.objects.get(name=name).delete()
+        try:
+            PublicArmy.objects.get(name=name).delete()
+        except:
+            pass
         mongo_models.delete_army(name, version)
         return HttpResponse("{}", content_type="application/json")
+
 
 @login_required(login_url='/login/')
 def parse_translation(request):
@@ -150,6 +157,7 @@ def parse_translation(request):
             return HttpResponseBadRequest(f"latex is empty {latex}", status=500)
         mongo_models.parse_translation(latex)
         return HttpResponse(dumps(mongo_models.parse_translation(latex)), content_type="application/json")
+
 
 def download_army(request):
     if request.method == 'POST':
@@ -164,10 +172,18 @@ def download_army(request):
             armies = PublicArmy.objects.filter(name=name, version=version)
             if len(armies) == 0:
                 return HttpResponseBadRequest(f"You need to be logged in to see this", status=401)
-        #TODO language
+        # TODO language
         language = "en"
-        (pdf, log, completed_process),filename = export_armybook(name, language, mongo_models.get_army(name, version)[0],
-                                                        LatexTemplate.objects.filter(name=name)[0])
+        global_translation = mongo_models.get_army(GLOBAL_TRANSLATION_NAME,
+                                                   PublicArmy.objects.filter(name=GLOBAL_TRANSLATION_NAME).aggregate(
+                                                       Max('version'))[
+                                                       'version__max'])
+        logger_view.info(
+            f"name: {name}, {PublicArmy.objects.filter(name=GLOBAL_TRANSLATION_NAME).aggregate(Max('version'))['version__max']}")
+        global_translation = global_translation[0]['loc'] if len(global_translation) > 0 else {}
+        (pdf, log, completed_process), filename,latex = export_armybook(name, language, global_translation,
+                                                                  mongo_models.get_army(name, version)[0],
+                                                                  LatexTemplate.objects.filter(name=name)[0])
         response = HttpResponse(pdf, content_type="application/pdf")
         response['Content-Disposition'] = 'inline; filename=' + filename
         return response
@@ -197,9 +213,12 @@ def get_unit_heights(request):
     if request.method == 'POST':
         return HttpResponse(dumps(mongo_models.UNIT_HEIGHTS), content_type="application/json")
 
+
 def get_rule_types(request):
     if request.method == 'POST':
         return HttpResponse(dumps(mongo_models.RULE_TYPES), content_type="application/json")
+
+
 def custom_logout(request):
     logout(request)
     return HttpResponse("{}", content_type="application/json")

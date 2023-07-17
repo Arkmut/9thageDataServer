@@ -1,0 +1,37 @@
+\newcommand{\plaguetablearraystretch}{3}
+
+\newcommand{\startplaguestable}{%
+	\DTLifdbexists{plagueslist}{\DTLcleardb{plagueslist}}{\DTLnewdb{plagueslist}}% Create new/discard old list
+	\vspace*{\parskip}%
+	\renewcommand{\arraystretch}{\plaguetablearraystretch}%
+	\ifdef{\languageisspanish}{%
+		\begin{center}\begin{tabular}{>{\bfseries\flushright}m{4.5cm}m{10cm}}%
+	}{%
+		\begin{center}\begin{tabular}{>{\bfseries}rrm{10cm}}%
+	}%
+	\toprule%
+}
+
+\newcommand{\closeplaguestable}{%
+	\DTLsort*{sortlabel}{plagueslist}% Sort list
+	\DTLforeach*{plagueslist}{\name=name, \plaguetype=plaguetype, \ruletext=ruletext}{%
+		\textbf{\name}& \textit{\plaguetype{}}&\ruletext{}\DTLiflastrow{}{\tabularnewline}%
+	}
+	\tabularnewline\bottomrule%
+	\end{tabular}\end{center}%
+	\vspace*{\parskip}%
+	\DTLcleardb{plagueslist}%
+}
+
+\newcommand{\addplague}[3]{%
+	\DTLnewrow{plagueslist}%
+	\pdfstringdef\textwithoutformatting{#1}%
+	\pdfsubstitute\textwithoutformatting{'}{}%
+	\pdfsubstitute\textwithoutformatting{ }{}%
+	\dolanguagespecificsubstitute{}%
+	\def\DTLentrycommand{\DTLnewdbentry{plagueslist}{sortlabel}}%
+	\expandafter\DTLentrycommand\expandafter{\textwithoutformatting}%
+	\DTLnewdbentry{plagueslist}{name}{#1}%
+	\DTLnewdbentry{plagueslist}{plaguetype}{#2}%
+	\DTLnewdbentry{plagueslist}{ruletext}{#3}%
+}

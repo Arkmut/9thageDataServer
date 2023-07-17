@@ -26,7 +26,7 @@
 
         <v-collapse-wrapper class="columns is-flex-direction-column" v-show="valueExpanded || alwaysExpanded">
             <div class="is-flex">
-                <div v-for="(key) of Object.keys(optionalValuesModified)" :key="key">
+                <div v-for="(key) in Object.keys(optionalValuesModified)" :key="key">
                     <template v-if="isOptionForHere(key,false)">
                         <div class="">
                             <button class="button" @click="addField(key,optionalValuesModified[key])">add
@@ -45,33 +45,7 @@
                                 <div class="column is-1"/>
                                 <div class="column is-9">
                                     <template v-if="(typeof value[key]) === 'object'">
-                                        <template v-if="value[key].constructor.name === 'Object'">
-                                            <ObjectEditor
-                                                    :value="value[key]"
-                                                    :titleValue="key"
-                                                    :defaultValues="defaultValuesModified[key]"
-                                                    :optionalValues="getOptional(key,false)"
-                                                    :titleLevel="subtitle"
-                                                    :enums="getEnumForRecursive(key)"
-                                                    @updateValue="updateSubValue(key,$event)"
-                                                    @deleteField="deleteFieldSubValue(key,$event)"
-                                            />
-                                            <div style="margin-bottom:30px"/>
-                                        </template>
-                                        <template v-else>
-                                            <ListEditor
-                                                    :value="value[key]"
-                                                    :titleValue="key"
-                                                    :defaultValues="defaultValuesModified[key]"
-                                                    :optionalValues="getOptional(key,true)"
-                                                    :titleLevel="subtitle"
-                                                    :enums="getEnumForRecursive(key)"
-                                                    @updateValue="updateSubValue(key,$event)"
-                                                    @addValue="addValue(key,$event)"
-                                                    @rmValue="rmValue(key,$event)"
-                                            />
-                                            <div style="margin-bottom:30px"/>
-                                        </template>
+                                        <div>Can't nest anymore!!</div>
                                     </template>
                                     <template v-else-if="(typeof value[key]) === 'boolean'">
                                         <div class="columns is-flex is-align-items-center">
@@ -157,14 +131,12 @@
     </div>
 </template>
 <script>
-import ListEditor from './ListEditor.vue'
 import CheckboxEditor from './CheckboxEditor.vue'
 import EnumEditor from './EnumEditor.vue'
 
     export default {
-    name: "ObjectEditor",
+    name: "SubObjectEditorLeaf",
     components:{
-        ListEditor,
         EnumEditor,
         CheckboxEditor,
 
@@ -187,23 +159,12 @@ import EnumEditor from './EnumEditor.vue'
         },
         methods: {
             isOptionForHere(key,removal){
-                if(!removal){
-                    if(key in this.value){
-                        return false;
-                    }
-                }else{
-                    if((typeof this.optionalValuesModified[key]) === 'object'){
-                        if( !(key in this.defaultValuesModified) || !(this.optionalValuesModified[key].constructor.name === 'Object')){
-                            return true;
-                        }else{
-                            return false;
-                        }
-                    }else{
-                        return true;
-                    }
+                if(key in this.value){
+                    return removal;
                 }
+                console.log("optional key end: ",key ,this.optionalValuesModified[key]);
+
                 if((typeof this.optionalValuesModified[key]) === 'object'){
-                console.log("optional key obj: ",key ,this.optionalValuesModified[key]);
                     if( !(key in this.defaultValuesModified) || !(this.optionalValuesModified[key].constructor.name === 'Object')){
                         return true;
                     }else{
@@ -213,14 +174,7 @@ import EnumEditor from './EnumEditor.vue'
                     return true;
                 }
             },
-            getEnumForRecursive(key){
-                if( key in this.enums){
-                    console.log("enum for: ",key,this.enums);
-                    return this.enums[key];
-                }else{
-                    return [];
-                }
-            },
+
            toggleExpandValue(){
                 this.valueExpanded = !this.valueExpanded;
 
@@ -228,7 +182,7 @@ import EnumEditor from './EnumEditor.vue'
 
             updateValue(key,value){
                 let v = value;
-                 if((typeof this.value[key]) === 'boolean'){
+                if((typeof this.value[key]) === 'boolean'){
                     v = !!v;
                 }
                 if((typeof this.value[key]) === 'number'){
@@ -265,14 +219,7 @@ import EnumEditor from './EnumEditor.vue'
                 this.$emit("deleteField",{key:key});
                 this.$forceUpdate();
             },
-            getOptional(key,isList){
-                if(isList){
-                    console.log("get optional for list: ",key,this.optionalValuesModified,this.optionalValuesModified[key]);
-                    if(key in this.optionalValuesModified && !(this.optionalValuesModified[key].constructor.name === 'Object')){
-                        //the list was optional, no options for optional lists
-                        return {}
-                    }
-                }
+            getOptional(key){
                 if(key in this.optionalValuesModified){
                     return this.optionalValuesModified[key];
                 }else{
@@ -282,8 +229,7 @@ import EnumEditor from './EnumEditor.vue'
 
         },
         created(){
-        console.log("start: ",this.enums);
-
+        console.log("end: ",this.enums,this.optionalValues);
             if(this.defaultValues != null){
                 this.defaultValuesModified=JSON.parse(JSON.stringify(this.defaultValues));
             }

@@ -41,14 +41,19 @@
                                                              v-model="category.name"
                                                              placeholder="Category name"/>
                                         </div>
-                                        <div class="" v-if="category.minimum">
-                                            <p>&lt;=</p>
+                                        <div class=""><input class="input" type="text" name="name" id="logo"
+                                                             v-model="category.logo"
+                                                             placeholder="Category Logo"/>
                                         </div>
-                                        <div class="" v-else>
+                                        <div class="" v-if="category.minimum">
                                             <p>&gt;=</p>
                                         </div>
+                                        <div class="" v-else>
+                                            <p>&lt;=</p>
+                                        </div>
                                         <div class=""><input class="input" type="number" name="value" id="value"
-                                                             v-model="category.value"
+                                                             :value="category.value"
+                                                             @input="event => updateValue(key,event.target.value)"
                                                              placeholder="Category value"/>
                                         </div>
                                         <div class="">
@@ -101,9 +106,18 @@
             },
             
             addCategory(){
-                this.$emit('add',{name:"",categories:""});
+                this.$emit('add',{name:"",categories:"",logo:"",value:0,minimum:false});
                 this.categoriesExpanded=true;
 
+            },
+            updateValue(index,value){
+                let val = this.categories[index];
+                if(typeof value ==="number"){
+                    val.value = value;
+                }else{
+                    val.value = parseInt(value);
+                }
+                this.$set(this.categories,index,val);
             },
             rmCategory(event,name){
                 for(let i =0; i<this.categories.length;i++){

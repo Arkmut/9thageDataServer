@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.forms.widgets import CheckboxSelectMultiple
-from .models import PublicArmy, LatexTemplate, Spaces
+from .models import *
 from django_better_admin_arrayfield.admin.mixins import DynamicArrayMixin
 from django_better_admin_arrayfield.forms.widgets import DynamicArrayWidget
 from django_better_admin_arrayfield.forms.fields import DynamicArrayField
@@ -18,21 +18,23 @@ class UserAdmin(admin.ModelAdmin):
     # Only display the "username" field
     fields = ["username"]
 
+class LatexInline1(admin.TabularInline):
+    model = SubLatexInitImport
+    extra = 1
+    fk_name='owner'
 
-class ListWidget(DynamicArrayWidget):
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault("subwidget_form", forms.forms.ChoiceField(choices=Spaces.choices))
-        super().__init__(*args, **kwargs)
+class LatexInline2(admin.TabularInline):
+    model = SubLatexImports
+    extra = 1
+    fk_name='owner'
 
 
-class LatexModelAdmin(admin.ModelAdmin, DynamicArrayMixin):
+
+class LatexModelAdmin(admin.ModelAdmin):
     model = LatexTemplate
-    exclude = ['lastModified']
+    exclude = ['lastModified','init_sub_imports','book_sub_imports']
     list_display = ['name']
-    formfield_overrides = {
-        DynamicArrayField: {'widget': ListWidget},
-    }
-
+    inlines = [LatexInline1,LatexInline2]
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name in ["init_sub_imports", "book_sub_imports"]:
             if 'object_id' in request.resolver_match.kwargs:
@@ -40,7 +42,7 @@ class LatexModelAdmin(admin.ModelAdmin, DynamicArrayMixin):
                 self_id = request.resolver_match.kwargs['object_id']
 
                 # then we did some stuff you don't care about
-                instance = LatexTemplate.objects.get(name=self_id)
+                instance = LatexTemplate.objects.get(id=self_id)
                 if instance:
                     # Exclude self from the many-to-many field
                     queryset = db_field.remote_field.model.objects.exclude(pk=instance.pk)
@@ -57,7 +59,7 @@ class LatexModelAdmin(admin.ModelAdmin, DynamicArrayMixin):
                 self_id = request.resolver_match.kwargs['object_id']
 
                 # then we did some stuff you don't care about
-                instance = LatexTemplate.objects.get(name=self_id)
+                instance = LatexTemplate.objects.get(id=self_id)
                 if instance:
                     # Exclude self from the many-to-many field
                     queryset = db_field.remote_field.model.objects.exclude(pk=instance.pk)

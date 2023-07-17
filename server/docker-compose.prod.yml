@@ -18,7 +18,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile_prod
-    command: gunicorn main.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn main.wsgi:application --bind 0.0.0.0:8000 --threads=2
     volumes:
       - static_volume:/home/app/web/staticfiles
     expose:

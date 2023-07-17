@@ -36,7 +36,7 @@
                                             <div class="media">
                                                 <div class="media-left">
                                                     <figure class="image is-48x48">
-                                                        <img src="https://bulma.io/images/placeholders/96x96.png"
+                                                        <img :src="'./rsc/logo_big_'+get_army_tag(army.name)+'.jpg'"
                                                              alt="Placeholder image">
                                                     </figure>
                                                 </div>
@@ -108,9 +108,21 @@
                 name: '',
                 version: '',
                 isLoggedIn:false,
+                publicPath: process.env.BASE_URL,
             }
         },
         methods: {
+            get_army_name(name){
+                return name.replace(/ /g, "_").toLowerCase().replace(/:/g, "").replace(/,/g, "");
+            },
+            get_army_tag(name){
+                let val =  this.get_army_name(name);
+                let name_initials="";
+                for (let el of val.split("_")){
+                    name_initials += el.toUpperCase()[0]
+                }
+                return name_initials;
+            },
             async getData() {
                 try {
                     // fetch armies
