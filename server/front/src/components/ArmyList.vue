@@ -190,7 +190,7 @@
             async makePublic(army){
                 try {
                     // Send a POST request to the API
-                    const response = await this.$http.post('http://localhost:8000/api/army_list/set_current_version', {
+                    const response = await this.$http.post('http://localhost:8000/api/army_list/make_public', {
                         name: army.name,
                         version: army.version
                         });

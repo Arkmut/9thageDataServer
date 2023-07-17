@@ -114,7 +114,19 @@ def set_current_version(request):
         PublicArmy.objects.update_or_create(name=name, defaults={"version": version})
         return HttpResponse("{}", content_type="application/json")
 
-
+@login_required(login_url='/login/')
+def make_public(request):
+    if request.method == 'POST':
+        if not request.user.is_superuser:
+            return HttpResponseBadRequest(f"Only the admin can make an army public", status=401)
+        body_unicode = request.body.decode('utf-8')
+        body = loads(body_unicode)
+        name = body["name"]
+        version = body["version"]
+        if name == "" or version == "":
+            return HttpResponseBadRequest(f"name is empty: {name} or version is empty {version}", status=500)
+        PublicArmy.objects.create(name=name, version= version)
+        return HttpResponse("{}", content_type="application/json")
 def is_public_army(request):
     if request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
