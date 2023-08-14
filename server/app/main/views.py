@@ -29,7 +29,7 @@ def army_list(request):
         userKnown = request.user.is_authenticated
         publicArmies = {}
         for ar in PublicArmy.objects.all():
-            logger_view.info("ar", ar)
+            logger_view.info(f"ar: {ar}")
             publicArmies[ar.name] = ar.version
         armies = get_armybooks(userKnown, publicArmies)
         if not userKnown:
@@ -99,7 +99,29 @@ def save_army(request):
         mongo_models.save_army(name, version, army)
         return HttpResponse("{}", content_type="application/json")
 
-
+@login_required(login_url='/login/')
+def edit_army_name(request):
+    if request.method == 'POST':
+        if not request.user.is_superuser:
+            return HttpResponseBadRequest(f"Only the admin can rename a book", status=401)
+        body_unicode = request.body.decode('utf-8')
+        body = loads(body_unicode)
+        name = body["name"]
+        oldName = body["oldName"]
+        oldVersion = body["oldVersion"]
+        version = body["version"]
+        if name == "" or version == "" or oldName=="":
+            return HttpResponseBadRequest(f"name is empty: {name} or version is empty {version} or old name is empty {oldName} or old version is empty {oldVersion}", status=500)
+        armies = PublicArmy.objects.filter(name=oldName, version=oldVersion)
+        public_army = len(armies) > 0
+        if public_army:
+            return HttpResponseBadRequest(f"can't rename a public army", status=500)
+        listTemplate = list(LatexTemplate.objects.filter(name=oldName))
+        for l in listTemplate:
+            l.name = name
+            l.save()
+        mongo_models.edit_army_name(oldName,oldVersion, version, name)
+        return HttpResponse("{}", content_type="application/json")
 @login_required(login_url='/login/')
 def set_current_version(request):
     if request.method == 'POST':

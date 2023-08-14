@@ -41,12 +41,33 @@
                                                     </figure>
                                                 </div>
                                                 <div class="media-content">
-                                                    <p class="title is-4">
-                                                        {{ army.name }}
-                                                    </p>
-                                                    <p class="subtitle is-6">
+                                                    <template v-if="oldName === '' || armyEditName!=army">
+                                                        <p class="title is-4">
+                                                            {{ army.name }}
+                                                        </p>
+                                                         <p class="subtitle is-6">
+
                                                         {{ army.version }}
                                                     </p>
+                                                    </template>
+                                                    <template v-else>
+                                                        <div><input class="input" type="text" name="name" id="editName"
+                                                                    v-model="armyEditName.name" placeholder="Army Name">
+                                                        </div>
+                                                        <div><input class="input" type="text" name="name" id="editVersion"
+                                                                    v-model="armyEditName.version" placeholder="Army Version">
+                                                        </div>
+                                                        <div class="column">
+
+                                                            <button class="button" aria-label="validate"
+                                                                    data-tooltip="validate"
+                                                                    @click="editArmyName(armyEditName)">
+                                                                Ok
+                                                            </button>
+
+                                                        </div>
+                                                    </template>
+
                                                 </div>
 
                                             </div>
@@ -56,22 +77,29 @@
                                 <div class="ml-auto" v-show="isLoggedIn">
                                     <div class="columns is-flex is-flex-direction-row is-align-items-center">
                                         <div class="column">
-                                            <template v-if="!isPublic(army)">
-                                                <button class="card-header-icon" aria-label="public"
-                                                        data-tooltip="Make this version public"
-                                                        @click="makePublic(army)">
-                                      <span class="icon">
-                                        <i class="far fa-star" aria-hidden="true"></i>
 
-                                      </span>
-                                                </button>
-                                            </template>
-                                            <template v-else>
-                                        <span class="icon">
-                                        <i class="fas fa-star" aria-hidden="true"></i>
+                                            <button class="card-header-icon" aria-label="editName"
+                                                    data-tooltip="edit army name"
+                                                    @click="startEditArmyName(army)">
+                                              <span class="icon">
+                                                <i class="fas fa-pen" aria-hidden="true"></i>
 
-                                      </span>
-                                            </template>
+                                              </span>
+                                            </button>
+
+                                        </div>
+                                        <div class="column">
+                                            <button class="card-header-icon" aria-label="public"
+                                                    data-tooltip="Make this version public"
+                                                    @click="makePublic(army)" v-show="!isPublic(army)">
+                                              <span class="icon">
+                                                <i class="far fa-star" aria-hidden="true"></i>
+
+                                              </span>
+                                            </button>
+                                            <span class="icon" v-show="isPublic(army)">
+                                                <i class="fas fa-star" aria-hidden="true"></i>
+                                            </span>
                                         </div>
                                         <div class="column">
 
@@ -85,6 +113,7 @@
                                             </button>
 
                                         </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -109,6 +138,9 @@
                 version: '',
                 isLoggedIn:false,
                 publicPath: process.env.BASE_URL,
+                oldName:'',
+                oldVersion:'',
+                armyEditName:null,
             }
         },
         methods: {
@@ -175,7 +207,35 @@
                     console.log(error);
                 }
             },
+            async editArmyName(army) {
+                try {
+                    // Send a POST request to the API
+                    await this.$http.post('http://localhost:8000/api/army_list/edit_army_name', {
+                        name: army.name,
+                        oldName: this.oldName,
+                        version: army.version,
+                        oldVersion: this.oldVersion,
+                        });
+                    // update data
+                    this.getData();
+
+                } catch (error) {
+                    // Log the error
+                    console.log(error);
+                }
+                this.oldName = '';
+                this.oldVersion = '';
+                this.armyEditName = null;
+            },
+            startEditArmyName(army) {
+                this.oldName = army.name;
+                this.oldVersion = army.version;
+                this.armyEditName = army;
+            },
             editArmy(army) {
+            if(this.oldName!==''){
+                return;
+            }
             console.log(army);
                 this.$router.push({ path: `/army/${army.name}/${army.version}`});
             },
@@ -232,12 +292,20 @@
 
 
 
+
+
+
+
 </script>
 <style>
 .custom-size {
   height: 64px;
   width: 64px;
 }
+
+
+
+
 
 
 

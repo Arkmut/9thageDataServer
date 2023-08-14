@@ -25,12 +25,13 @@ def get(collection: str, dict_index: dict):
     return db_handle[collection].find(dict_index)
 
 
-def update(collection: str, dict_index: dict, object: dict):
+def replace(collection: str, dict_index: dict, object: dict):
     old_id = get(collection,dict_index)[0]['_id']
     object['_id']=old_id
     return db_handle[collection].replace_one(dict_index, object)
 
-
+def update(collection: str, dict_index: dict, object: dict):
+    return db_handle[collection].update_one(dict_index, {'$set':object})
 def delete(collection: str, dict_index: dict):
     return db_handle[collection].delete_one(dict_index)
 

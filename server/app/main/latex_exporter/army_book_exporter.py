@@ -27,6 +27,12 @@ def latex_topdf_from_string(latex: str):
              "-recorder", "file.tex"],
             timeout=120,
             stdout=PIPE, stderr=PIPE)
+        # triple try for latex
+        fp = subprocess.run(
+            ["lualatex", "-synctex=1", "-interaction=nonstopmode", "-output-directory=" + td, "-file-line-error",
+             "-recorder", "file.tex"],
+            timeout=120,
+            stdout=PIPE, stderr=PIPE)
         logger_latex.info("printing stdout...")
         for l in fp.stdout.decode("utf-8").split("\n"):
             logger_latex.info(l)
@@ -41,5 +47,5 @@ def latex_topdf_from_string(latex: str):
 
 def export_armybook(name: str, language: str, global_language: {}, army: {}, template: LatexTemplate):
     latex = template.getWithSubImports()
-    formattedLatex = format_template(army, template.lastModified, "%d %B, %Y", latex, language, global_language)
+    formattedLatex = format_template(army, template.lastModified, "%B %d, %Y", latex, language, global_language)
     return latex_topdf_from_string(formattedLatex), generate_filename(army,language), formattedLatex

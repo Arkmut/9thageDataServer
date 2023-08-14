@@ -7,7 +7,7 @@ SPELL_DURATIONS = ["oneTurn", "permanent", "instant"]
 ITEM_TYPES = ["weapon", "armour", "banner", "artefact", "kindred", "aspectsofnature"]
 UNIT_TYPES = ["infantry", "cavalry", "beast", "construct"]
 UNIT_HEIGHTS = ["standard", "large", "gigantic"]
-RULE_TYPES = ["universal", "attack_attributes/shooting", "armoury/armour", "armoury/shootingweapon",
+RULE_TYPES = ["universal", "attack_attributes/shooting","attack_attributes/closecombat", "armoury/armour", "armoury/shootingweapon",
               "armoury/closecombatweapon", "armoury/artilleryweapon", "special_attacks"]
 ARMYBOOK_SCHEMA = {
     "bsonType": "object",
@@ -572,6 +572,7 @@ def get_armybooks(user_known: bool, public_armies: {}):
 
 
 def get_army(name: str, version: str):
+    logger_router.info(f"mongo request: {name} {version}")
     return list(get("ArmyBooks", {'name': name, 'version': version}))
 
 
@@ -616,8 +617,9 @@ def army_check(army):
 
 
 def save_army(name: str, version: str, army: {}):
-    return update("ArmyBooks", {'name': name, 'version': version}, army)
-
+    return replace("ArmyBooks", {'name': name, 'version': version}, army)
+def edit_army_name(oldName: str, oldVersion:str,version: str, name:str):
+    return update("ArmyBooks", {'name': oldName, 'version': oldVersion}, {'name':name,'version':version})
 
 def delete_army(name: str, version: str):
     return delete("ArmyBooks", {'name': name, 'version': version})
@@ -725,7 +727,7 @@ def gen_footer(army: {}, template: str):
 
 def gen_army_name_initials(army):
     name_tag = gen_army_name(army)
-    name_initials=""
+    name_initials = ""
     for el in name_tag.split("_"):
         name_initials += el.upper()[0]
     return name_initials
@@ -848,11 +850,13 @@ def gen_model_rules_internal(rule_list: [], subtitle: str, subtypes: [str]):
     return res
 
 
-def gen_rule_type(el: str):
+def gen_rule_type(el: str, inUnit:bool = False):
     if "attack_attributes" in el:
         return "\\attackattribute" + el.lower()[el.index("/") + 1 if ("/" in el) else 0:]
     elif "special_attacks" in el:
         return "\\specialattack"
+    elif "universal" in el and inUnit:
+        return "\\universalrule"
     else:
         return "\\" + el.lower()[el.index("/") + 1 if ("/" in el) else 0:]
 
@@ -1120,12 +1124,28 @@ def gen_options_cg(options: []):
     return res + optionLines + "},\n"
 
 
-def gen_unit_specific_rules(u, army):
+def gen_unit_specific_rules(u, army, isFromOption: bool):
     if "modelRules" not in u or len(u['modelRules']) == 0:
         return ""
     res = "{%\n"
+    rules = []
     for r in u['modelRules']:
-        res += f"		\\modelruledef{{{r['name']}}}{{\\ruletype{{{gen_rule_type(r['type'])}}}{r['rules']}}}\n"
+        ruleName = r['name']
+        found = False
+        for o in u['options']:
+            if ruleName in o['globalName']:
+                found = True
+                break
+            for v in o['values']:
+                if ruleName in v['name']:
+                    found = True
+                    break
+        if found == isFromOption:
+            rules.append(r)
+    if len(rules)==0:
+        return ""
+    for r in rules:
+        res += f"		\\modelruledef{{{r['name']}}}{{\\ruletype{{{gen_rule_type(r['type'],True)}}}{r['rules']}}}\n"
     return res + "}"
 
 
@@ -1198,7 +1218,8 @@ def gen_units_internal(category: {}, unitList: [], army: {}):
                f"{gen_options_magic(u['options'])}" \
                f"{gen_options_cg(u['options'])}" \
                f"{gen_paths(u)}" \
-               f"modelrulesdef={gen_unit_specific_rules(u, army)},\n" \
+               f"modelrulesdef={gen_unit_specific_rules(u, army, False)},\n" \
+               f"optionalmodelrulesdef={gen_unit_specific_rules(u, army, True)},\n" \
                f"}} % END UNIT ENTRY\n"
     return res + "\\clearpage\n"
 
