@@ -119,6 +119,7 @@ import ObjectEditor from './ObjectEditor.vue'
                         "condition":"",
                     },
                     "maxunitsize":0,
+                    "fluff":"",
                     "costpermodel":0,
 
                     options:{

@@ -5,7 +5,7 @@
 	\ifdefined\uncompressedcover
 		\tikz[remember picture,overlay] \node[opacity=1.0,inner sep=0pt] at (current page.center){\includegraphics[width=\paperwidth,height=\paperheight]{$RSC_PATH$/Layout/pics/full_cover.jpg}};
 	\else
-		\tikz[remember picture,overlay] \node[opacity=1.0,inner sep=0pt] at (current page.center){\includegraphics[width=\paperwidth,height=\paperheight]{$RSC_PATH$/Layout/pics/full_cover_compressed.jpg}};	
+		\tikz[remember picture,overlay] \node[opacity=1.0,inner sep=0pt] at (current page.center){\includegraphics[width=\paperwidth,height=\paperheight]{$RSC_PATH$/Layout/pics/full_cover_compressed.jpg}};
 	\fi
 	\tikz[remember picture,overlay] \node[opacity=1.0,inner sep=0pt,below=76mm,blur shadow] at (current page.north){\includegraphics[height=170mm]{\thisbookhasacover}};
 	\ifdefined\thisisnotfantasybattles
@@ -50,12 +50,15 @@
 
 {\fulltitlefont\fontsize{40}{48}\selectfont
 	\BeginAccSupp{method=pdfstringdef,unicode,ActualText={\eastereggA}}%
+	{
+	    \centering
 		\booktitle%
+	}
 	\EndAccSupp{}%
 }
 \vspace{0.25cm}
 
-{\fontsize{12}{14.4}\selectfont 
+{\fontsize{12}{14.4}\selectfont
 \ifdefined\thisisanarmybook
 	\ifdefined\thisisasupplementarmy
 		\supplementarmybookname{\thisisasupplementarmy}\vspace{-3pt}\par
@@ -71,7 +74,7 @@
 		\supplementname{}\vspace{-3pt}\par
 	\fi
 \fi
-	
+
 	\ifdef{\editionversion}{\editionversion{}, }{}\versionname{} \ifdef{\balanceversion}{\balanceversion{}}{}%
 	\ifdef{\documentversion}{\ifdef{\balanceversion}{.}{}\documentversion{}}{\ifdef{\balanceversion}{}{1}} %
 	\ifdef{\betaversion}{\betaname{} \betaversion{} }{}%
@@ -107,23 +110,23 @@
 	\hypertarget{tableofcontents}{\tocentry{howtousethisdoc}{\howtousethisdoc}}
 
 	\vspace*{5pt}\par%
-	
+
 	\tocentry{pathsofmagic}{\pathsofmagic}\vspace*{5pt}\par%
 
 	{\largefontsize
 	\titlepagetoc%
-	
+
 	}
 	\vspace*{5pt}\par%
-	
+
 	\tocentry{specialitems}{\specialitems}\vspace*{5pt}\par%
-	
+
 	{\largefontsize%
 	\hspace*{0.5cm}\tocentry{weapon_enchantments}{\weaponenchantments}\newline%
 	\hspace*{0.5cm}\tocentry{armour_enchantments}{\armourenchantments}\newline%
 	\hspace*{0.5cm}\tocentry{banner_enchantments}{\bannerenchantments}\newline%
 	\hspace*{0.5cm}\tocentry{artefacts}{\artefacts}%
-	
+
 	}
 
 	\ifdef\thereisachangelog{\vspace*{5pt}\par\tocentry{pathschangelog}{\changelog}}{}
@@ -180,7 +183,7 @@
 			\noindent\frontpagecreditsnohowtoread%
 		\else%
 			\ifdefined\thisisasupplementarmy%
-				\noindent\frontpagecreditssuppl%		
+				\noindent\frontpagecreditssuppl%
 			\else%
 				\noindent\frontpagecredits%
 			\fi%

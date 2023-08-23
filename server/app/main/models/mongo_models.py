@@ -7,7 +7,8 @@ SPELL_DURATIONS = ["oneTurn", "permanent", "instant"]
 ITEM_TYPES = ["weapon", "armour", "banner", "artefact", "kindred", "aspectsofnature"]
 UNIT_TYPES = ["infantry", "cavalry", "beast", "construct"]
 UNIT_HEIGHTS = ["standard", "large", "gigantic"]
-RULE_TYPES = ["universal", "attack_attributes/shooting","attack_attributes/closecombat", "armoury/armour", "armoury/shootingweapon",
+RULE_TYPES = ["universal", "attack_attributes/shooting", "attack_attributes/closecombat", "armoury/armour",
+              "armoury/shootingweapon",
               "armoury/closecombatweapon", "armoury/artilleryweapon", "special_attacks"]
 ARMYBOOK_SCHEMA = {
     "bsonType": "object",
@@ -239,6 +240,9 @@ ARMYBOOK_SCHEMA = {
                             "name": {
                                 "bsonType": "string",
                                 "description": "'name' is required"
+                            },
+                            "fluff": {
+                                "bsonType": "string",
                             },
                             "categories": {
                                 "bsonType": "array",
@@ -618,8 +622,11 @@ def army_check(army):
 
 def save_army(name: str, version: str, army: {}):
     return replace("ArmyBooks", {'name': name, 'version': version}, army)
-def edit_army_name(oldName: str, oldVersion:str,version: str, name:str):
-    return update("ArmyBooks", {'name': oldName, 'version': oldVersion}, {'name':name,'version':version})
+
+
+def edit_army_name(oldName: str, oldVersion: str, version: str, name: str):
+    return update("ArmyBooks", {'name': oldName, 'version': oldVersion}, {'name': name, 'version': version})
+
 
 def delete_army(name: str, version: str):
     return delete("ArmyBooks", {'name': name, 'version': version})
@@ -662,7 +669,8 @@ FOOTER_PART2_BALISE = "$FOOTER_PART2$"
 
 
 def gen_army_name(army):
-    return army['name'].replace(" ", "_").lower().replace(":", "").replace(",", "")
+    return army['name'].lower().replace("\\newline", "").replace("\\", "").replace(" ", "_").replace("__", "_").replace(
+        ":", "").replace(",", "")
 
 
 def gen_toc(army: {}, template: str, changelog: str):
@@ -729,6 +737,8 @@ def gen_army_name_initials(army):
     name_tag = gen_army_name(army)
     name_initials = ""
     for el in name_tag.split("_"):
+        if len(el) == 0:
+            continue
         name_initials += el.upper()[0]
     return name_initials
 
@@ -850,7 +860,7 @@ def gen_model_rules_internal(rule_list: [], subtitle: str, subtypes: [str]):
     return res
 
 
-def gen_rule_type(el: str, inUnit:bool = False):
+def gen_rule_type(el: str, inUnit: bool = False):
     if "attack_attributes" in el:
         return "\\attackattribute" + el.lower()[el.index("/") + 1 if ("/" in el) else 0:]
     elif "special_attacks" in el:
@@ -1142,10 +1152,10 @@ def gen_unit_specific_rules(u, army, isFromOption: bool):
                     break
         if found == isFromOption:
             rules.append(r)
-    if len(rules)==0:
+    if len(rules) == 0:
         return ""
     for r in rules:
-        res += f"		\\modelruledef{{{r['name']}}}{{\\ruletype{{{gen_rule_type(r['type'],True)}}}{r['rules']}}}\n"
+        res += f"		\\modelruledef{{{r['name']}}}{{\\ruletype{{{gen_rule_type(r['type'], True)}}}{r['rules']}}}\n"
     return res + "}"
 
 
@@ -1201,6 +1211,7 @@ def gen_units_internal(category: {}, unitList: [], army: {}):
     for u in unitList:
         res += f"\\unitentry{{%\nname={u['name']}{{}},\n" \
                f"logo={category['logo']},\n" \
+               f"fluff={u['fluff'] if 'fluff' in u else ''},\n" \
                f"{gen_additional_categories(u, army['armyOrganisation']['categories'])}" \
                f"{gen_category_change(u, army['armyOrganisation']['categories'])}" \
                f"cost={u['cost'] if u['cost'] > 0 else ''},\n" \
