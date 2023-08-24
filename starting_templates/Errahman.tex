@@ -1,0 +1,30 @@
+$LANGUAGE_DEF$
+\def\thisisanarmybook{}
+\def\thisisasupplementarmy{Vermin Swarm}
+%\def\noprintpoints{}
+% Preamble
+\documentclass[a4paper,10pt]{article}
+\usepackage{import}
+\subimport{$RSC_PATH$/Layout/}{Layout.tex}
+\graphicspath{{$RSC_PATH$/$ARMY_NAME_TAG$/pics/}{$RSC_PATH$/Layout/pics/}{$RSC_PATH$/Arcane_Compendium/pics/}}
+$LANGUAGE_DATA$
+$INIT_SUB_IMPORTS$
+\newcommand{\editionversion}{\nth{2} Edition}
+\newcommand{\booktitle}{$ARMY_NAME$}
+\newcommand{\balanceversion}{$ARMY_VERSION$}
+\newcommand\releasedate{$CURRENT_DATE$}% Comment if you want to use today's date in your default language
+%\newcommand{\specialversion}{}% anything related to the version
+\newcommand{\booklogo}{$RSC_PATH$/$ARMY_NAME_TAG$/pics/logo_big_$ARMY_INITIALS$.jpg}
+\def\bookprefix{$ARMY_INITIALS$}
+\hypersetup{pdftitle={T9A-FB -- \booktitle{}}}
+
+\begin{document}
+
+% all main sections are in specific files
+$TITLE_IMPORT$
+\fluffbox{\fluffone}
+$BOOK_SUB_IMPORT$
+\debugfooter% else footer goes wild because of ocgcolorlinks
+$CHANGELOG$
+
+\end{document}

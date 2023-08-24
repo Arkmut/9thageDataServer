@@ -9,9 +9,9 @@
 	\fi
 	\tikz[remember picture,overlay] \node[opacity=1.0,inner sep=0pt,below=76mm,blur shadow] at (current page.north){\includegraphics[height=170mm]{\thisbookhasacover}};
 	\ifdefined\thisisnotfantasybattles
-        \tikz[remember picture,overlay] \node[inner sep=0pt, below=3cm] at (current page.north) {\includegraphics[width=122mm]{$RSC_PATH$/Layout/pics/BRAND9AgeLogotypeGOLD_noFB_$LANGUAGE$.png}};
+        \tikz[remember picture,overlay] \node[inner sep=0pt, below=3cm] at (current page.north) {\includegraphics[width=122mm]{$RSC_PATH$/Layout/pics/BRAND9AgeLogotypeGOLD_noFB_\languagetag.png}};
     \else
-		\tikz[remember picture,overlay] \node[inner sep=0pt, below=3cm] at (current page.north) {\includegraphics[width=122mm]{$RSC_PATH$/Layout/pics/BRAND9AgeLogotypeGOLD_$LANGUAGE$.png}};
+		\tikz[remember picture,overlay] \node[inner sep=0pt, below=3cm] at (current page.north) {\includegraphics[width=122mm]{$RSC_PATH$/Layout/pics/BRAND9AgeLogotypeGOLD_\languagetag.png}};
     \fi
 	\ifdefined\addbooktitletocover
 			\newcommand{\titlesmallcaps}[1]{{\fontsize{27}{32.4}\selectfont#1}}
@@ -32,9 +32,9 @@
 
 
 \ifdefined\languageisfrench
-    \includegraphics[height=3.3cm]{$RSC_PATH$/Layout/pics/BRAND9AgeLogotype_$LANGUAGE$.pdf}%
+    \includegraphics[height=3.3cm]{$RSC_PATH$/Layout/pics/BRAND9AgeLogotype_\languagetag.pdf}%
 \else
-    \includegraphics[height=3cm]{$RSC_PATH$/Layout/pics/BRAND9AgeLogotype_$LANGUAGE$.pdf}%
+    \includegraphics[height=3cm]{$RSC_PATH$/Layout/pics/BRAND9AgeLogotype_\languagetag.pdf}%
 \fi
 
 \ifdefined\thisisthepathsbook
