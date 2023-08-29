@@ -24,7 +24,7 @@
                                 Save
                             </template>
                         </button>
-                        <button class="button" @click="downloadArmy" v-show="army.name!==translationName">
+                        <button class="button" @click="downloadArmy(false)" v-show="army.name!==translationName">
                             <template v-if="startDownloading">
                                 <div class="loader-wrapper is-active">
                                     <div class="loader is-loading ml-auto mr-auto custom-size-spinner"></div>
@@ -32,6 +32,16 @@
                             </template>
                             <template v-else>
                                 Download PDF
+                            </template>
+                        </button>
+                        <button class="button" @click="downloadArmy(true)" v-show="army.name!==translationName">
+                            <template v-if="startDownloading">
+                                <div class="loader-wrapper is-active">
+                                    <div class="loader is-loading ml-auto mr-auto custom-size-spinner"></div>
+                                </div>
+                            </template>
+                            <template v-else>
+                                Download Latex
                             </template>
                         </button>
                     </div>
@@ -49,8 +59,13 @@
                         </p>
                     </div>
                 </section>
+                <div class="columns is-flex is-vcentered" v-show="army.name!==translationName">
+                    <div class="column is-11">
+                        <h1 class="title">Release Date</h1>
+                        <datepicker placeholder="Select Date" v-model="date"></datepicker>
+                    </div>
+                </div>
                 <!-- Army specific rules -->
-
                 <RuleList :rules="army.armyRules.rules" titleRuleList="Army Specific rules"
                           @add="addToArray(army.armyRules.rules,$event)"
                           @rm="rmFromArray(army.armyRules.rules,$event)" v-show="army.name!==translationName"/>
@@ -83,7 +98,9 @@
                             </button>
                         </template>
                         <template v-else>
-                            <button class="button" @click="addToObject(army,{key:'hereditarySpell',value:{name: '', castingValue: {base: 0},range: 0,types: [],duration: 'oneTurn',effect: ''}})">+
+                            <button class="button"
+                                    @click="addToObject(army,{key:'hereditarySpell',value:{name: '', castingValue: {base: 0},range: 0,types: [],duration: 'oneTurn',effect: ''}})">
+                                +
                             </button>
                         </template>
 
@@ -127,9 +144,12 @@ import CategoryList from './editor/CategoryList.vue'
 import UnitList from './editor/UnitList.vue'
 import LanguageList from './editor/LanguageList.vue'
 import ObjectEditor from './editor/ObjectEditor.vue'
+import moment from 'moment';
+import Datepicker from 'vuejs-datepicker';
 
     export default {
         components: {
+            Datepicker,
             RuleList,
             ItemList,
             CategoryList,
@@ -140,6 +160,7 @@ import ObjectEditor from './editor/ObjectEditor.vue'
         data() {
             return {
             translationName:'global_translation',
+                date:null,
                 army: null,
                 defaultHereditarySpell:{
                     castingValue:{
@@ -186,6 +207,7 @@ import ObjectEditor from './editor/ObjectEditor.vue'
                         version: this.$route.params.version
                         });
                     this.army = response.data;
+                    this.date = moment(this.army['date'], 'DD/MM/yyyy').toDate();
                 } catch (error) {
                     // Log the error
                     console.log(error);
@@ -195,6 +217,7 @@ import ObjectEditor from './editor/ObjectEditor.vue'
                 try {
                     let army = JSON.parse(JSON.stringify(this.army));
                     delete army["_id"];
+                    army['date'] = moment(this.date).format('DD/MM/yyyy');
                     // Send a POST request to the API
                         const response = await this.$http.post('http://localhost:8000/api/army_list/save_army', {
                         name: this.$route.params.name,
@@ -215,24 +238,25 @@ import ObjectEditor from './editor/ObjectEditor.vue'
                       }).bind(this), 1500);
                 }
             },
-            async downloadArmy() {
+            async downloadArmy(isLatex) {
                 try {
                     // Send a POST request to the API
                     this.startDownloading = true;
                         const response = await this.$http.post('http://localhost:8000/api/army_list/download_army', {
                         name: this.$route.params.name,
-                        version: this.$route.params.version
+                        version: this.$route.params.version,
+                        latex:isLatex
                         }, {
                           headers: {
                             'Content-Type': 'application/json', // Set the content type here
                           },
                             responseType: 'arraybuffer', // Set the response type to arraybuffer to receive binary data
                         });
-                    const blob = new Blob([response.data], { type: 'application/pdf' })
+                    const blob = new Blob([response.data], { type: 'application/force-download' })
                     const disposition = response.headers['content-disposition'];
                     const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
                     const matches = filenameRegex.exec(disposition);
-                    const filename = matches !== null && matches[1] ? matches[1].replace(/['"]/g, '') : 'filename.pdf';
+                    const filename = matches !== null && matches[1] ? matches[1].replace(/['"]/g, '') : 'filename.zip';
                     const link = document.createElement('a')
                     link.href = URL.createObjectURL(blob)
                     link.download = filename
@@ -276,12 +300,14 @@ import ObjectEditor from './editor/ObjectEditor.vue'
 
 
 
+
 </script>
 <style>
 .custom-size-spinner {
   height: 16px;
   width: 16px;
 }
+
 
 
 

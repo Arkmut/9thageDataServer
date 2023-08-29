@@ -13,6 +13,7 @@ from django.http import (HttpResponse, HttpResponseBadRequest,
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.db.models import Max
+from datetime import datetime, date
 
 logger_view = logging.getLogger(__name__)
 
@@ -76,7 +77,14 @@ def get_army(request):
         logger_view.info(f"get army: {name} {version}")
         if name == "" or version == "":
             return HttpResponseBadRequest(f"name is empty: {name} or version is empty {version}", status=405)
-        return HttpResponse(dumps(mongo_models.get_army(name, version)[0]), content_type="application/json")
+        data = mongo_models.get_army(name, version)[0]
+        if not "date" in data:
+            if len(LatexTemplate.objects.filter(name=name))>0:
+                data["date"] = LatexTemplate.objects.filter(name=name)[0].lastModified.strftime("%d/%m/%Y")
+            else:
+                data["date"] = date.today().strftime("%d/%m/%Y")
+        json = dumps(data)
+        return HttpResponse(json, content_type="application/json")
 
 
 @login_required(login_url='/login/')
@@ -199,6 +207,7 @@ def download_army(request):
         body = loads(body_unicode)
         name = body["name"]
         version = body["version"]
+        genPdf = not bool(body["latex"])
         if name == "" or version == "":
             return HttpResponseBadRequest(f"name is empty: {name} or version is empty {version}", status=500)
         userKnown = request.user.is_authenticated
@@ -206,20 +215,20 @@ def download_army(request):
             armies = PublicArmy.objects.filter(name=name, version=version)
             if len(armies) == 0:
                 return HttpResponseBadRequest(f"You need to be logged in to see this", status=401)
-        # TODO language
-        language = "en"
+
         global_translation = mongo_models.get_army(GLOBAL_TRANSLATION_NAME,
                                                    PublicArmy.objects.filter(name=GLOBAL_TRANSLATION_NAME).aggregate(
                                                        Max('version'))[
                                                        'version__max'])
-        logger_view.info(
-            f"name: {name}, {PublicArmy.objects.filter(name=GLOBAL_TRANSLATION_NAME).aggregate(Max('version'))['version__max']}")
+
         global_translation = global_translation[0]['loc'] if len(global_translation) > 0 else {}
-        (pdf, log, completed_process), filename,latex = export_armybook(name, language, global_translation,
-                                                                  mongo_models.get_army(name, version)[0],
-                                                                  LatexTemplate.objects.filter(name=name)[0])
-        response = HttpResponse(pdf, content_type="application/pdf")
-        response['Content-Disposition'] = 'inline; filename=' + filename
+        army = mongo_models.get_army(name, version)[0]
+        date = datetime.strptime(army["date"], "%d/%m/%Y")
+        zip_file, filename = export_armybook(name, date, genPdf, global_translation,
+                                                                             army,
+                                                                             LatexTemplate.objects.filter(name=name)[0])
+        response = HttpResponse(zip_file , content_type="application/force-download")
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
 

@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from ..utils.mongodb_router import *
 import pymongo
 import re
@@ -10,6 +12,8 @@ UNIT_HEIGHTS = ["standard", "large", "gigantic"]
 RULE_TYPES = ["universal", "attack_attributes/shooting", "attack_attributes/closecombat", "armoury/armour",
               "armoury/shootingweapon",
               "armoury/closecombatweapon", "armoury/artilleryweapon", "special_attacks"]
+
+TRANSLATED_LANGUAGES = ["de", "en", "es", "fr", "it", "pl", "ru", "zh"]
 ARMYBOOK_SCHEMA = {
     "bsonType": "object",
     "title": "Army Book object validation",
@@ -23,6 +27,9 @@ ARMYBOOK_SCHEMA = {
         "version": {
             "bsonType": "string",
             "description": "'version' must be a string and is required"
+        },
+        "date": {
+            "bsonType": "string",
         },
         "public": {
             "bsonType": "bool",
@@ -632,6 +639,7 @@ def delete_army(name: str, version: str):
     return delete("ArmyBooks", {'name': name, 'version': version})
 
 
+# template balise
 RSC_PATH_BALISE = "$RSC_PATH$"
 RSC_PATH = "./rsc"
 ARMY_NAME_TAG_BALISE = "$ARMY_NAME_TAG$"
@@ -666,6 +674,22 @@ TOC_PART1_BALISE = "$TOC_PART1$"
 TOC_PART2_BALISE = "$TOC_PART2$"
 FOOTER_PART1_BALISE = "$FOOTER_PART1$"
 FOOTER_PART2_BALISE = "$FOOTER_PART2$"
+
+# latex markers (for human readable splitting)
+START_SUB_IMPORT_MARKER = "% START SUB IMPORT: \n"
+END_SUB_IMPORT_MARKER = "% END SUB IMPORT \n"
+START_SUB_IMPORT_NAME_MARKER = "% SUB IMPORT NAME:"
+END_SUB_IMPORT_NAME_MARKER = "\n"
+START_LANG_MARKER = "%START OF LANGUAGE DICT \n"
+END_LANG_MARKER = "%END OF LANGUAGE DICT \n"
+START_UNIT_MARKER = "%START OF UNIT LATEX \n"
+END_UNIT_MARKER = "%END OF UNIT LATEX \n"
+START_UNIT_NAME_MARKER = "%UNIT NAME: "
+END_UNIT_NAME_MARKER = "\n"
+START_ITEM_MARKER = "%START OF SPECIAL ITEMS LATEX \n"
+END_ITEM_MARKER = "%END OF SPECIAL ITEMS LATEX \n"
+START_ITEM_NAME_MARKER = "%ITEM NAME: "
+END_ITEM_NAME_MARKER = "\n"
 
 
 def gen_army_name(army):
@@ -743,6 +767,90 @@ def gen_army_name_initials(army):
     return name_initials
 
 
+def format_template_all(army: {}, date, date_format, template: str, global_language: {}):
+    res = {}
+    loc_table = army['loc']
+    for language in TRANSLATED_LANGUAGES:
+        if language in loc_table.keys():
+            res[language] = format_template(army, date, date_format, template, language, global_language)
+    return res
+
+
+def format_template_all_readable(army: {}, date, date_format, template: str, global_language: {}):
+    res = {}
+    loc_table = army['loc']
+    for language in TRANSLATED_LANGUAGES:
+        if language in loc_table.keys():
+            res[language] = format_template_readable(army, date, date_format, template, language, global_language)
+    return res
+
+
+def format_template_readable(army: {}, date, date_format, template: str, language: str, global_language: {}):
+    filelist = defaultdict(lambda: [])
+    logger_router.info(f"start formatting: {army['name']} {language}")
+    total_file = format_template(army, date, date_format, template, language, global_language)
+    logger_router.info(f"end formatting: {army['name']} {language}")
+
+    total_file = total_file.replace(RSC_PATH, "..")
+    total_file = total_file.replace("../"+gen_army_name(army), ".")
+
+    language_data = total_file[total_file.index(START_LANG_MARKER):]
+    language_data = language_data[0:language_data.index(END_LANG_MARKER)+len(END_LANG_MARKER)]
+    total_file = total_file.replace(language_data, "\\subimport{language_specific/\languagetag/}{dictionnary.tex}\n")
+    #remove global translations
+    for loc_item in global_language[language].keys():
+        header = f"\\newcommand{{{loc_item}}}"
+        index_loc = language_data.index(header)
+        next_loc = "\\newcommand{"
+        if next_loc in language_data[index_loc+len(header):]:
+            end_index = index_loc + len(header) + language_data[index_loc + len(header):].index(next_loc)
+            logger_router.info(f"loc: {loc_item} {index_loc} {end_index} {language_data[index_loc:end_index]}")
+            language_data = language_data[:index_loc] + language_data[end_index:]
+        else:
+            logger_router.info(f"loc: {loc_item} {index_loc} {language_data[index_loc:]}")
+            language_data = language_data[:index_loc]
+
+    filelist["language_specific/" + language].append(("dictionnary", language_data, "tex"))
+
+    armylist = total_file[total_file.index(START_UNIT_MARKER):]
+    armylist = armylist[0:armylist.rindex(END_UNIT_MARKER) + len(END_UNIT_MARKER)]
+    total_file = total_file.replace(armylist, "\\subimport{common}{armylist.tex}\n")
+    logger_router.info(f"armylist: {armylist}")
+
+    while START_UNIT_MARKER in armylist:
+        unit = armylist[armylist.index(START_UNIT_MARKER):]
+        unit = unit[0:unit.index(END_UNIT_MARKER)+len(END_UNIT_MARKER)]
+        name = unit[unit.index(START_UNIT_NAME_MARKER) + len(START_UNIT_NAME_MARKER):]
+        name = name[0:name.index(END_UNIT_NAME_MARKER)]
+        logger_router.info(f"unit: {name}, {unit.index(START_UNIT_NAME_MARKER)},{unit.index(END_UNIT_NAME_MARKER)}, {unit}")
+        armylist = armylist.replace(unit, f"\\subimport{{armylistfolder}}{{{name}.tex}}\n")
+        filelist["common/armylistfolder"].append((f"{name}", unit, "tex"))
+    filelist["common"].append(("armylist", armylist, "tex"))
+
+    specialitems = total_file[total_file.index(START_ITEM_MARKER):]
+    specialitems = specialitems[0:specialitems.rindex(END_ITEM_MARKER) + len(END_ITEM_MARKER)]
+    total_file = total_file.replace(specialitems, "\\subimport{common}{specialitems.tex}\n")
+    while START_ITEM_MARKER in specialitems:
+        item = specialitems[specialitems.index(START_ITEM_MARKER):]
+        item = item[0:item.index(END_ITEM_MARKER)+len(END_ITEM_MARKER)]
+        name = item[item.index(START_ITEM_NAME_MARKER) + len(START_ITEM_NAME_MARKER):]
+        name = name[0:name.index(END_ITEM_NAME_MARKER)]
+        specialitems = specialitems.replace(item, f"\\subimport{{specialitemsfolder}}{{{name}.tex}}\n")
+        filelist["common/specialitemsfolder"].append((f"{name}", item, "tex"))
+    filelist["common"].append(("specialitems", specialitems, "tex"))
+
+    while START_SUB_IMPORT_MARKER in total_file:
+        subimport = total_file[total_file.index(START_SUB_IMPORT_MARKER):]
+        subimport = subimport[0:subimport.index(END_SUB_IMPORT_MARKER)+len(END_SUB_IMPORT_MARKER)]
+        name = subimport[subimport.index(START_SUB_IMPORT_NAME_MARKER) + len(START_SUB_IMPORT_NAME_MARKER):]
+        name = name[0:name.index(END_SUB_IMPORT_NAME_MARKER)]
+        total_file = total_file.replace(subimport, f"\\subimport{{}}{{{name}.tex}}\n")
+        filelist[""].append((f"{name}", subimport, "tex"))
+
+    filelist[""].append((f"{generate_filename(army,language).replace('.pdf','')}", total_file, "tex"))
+    return filelist
+
+
 def format_template(army: {}, date, date_format, template: str, language: str, global_language: {}):
     name_tag = gen_army_name(army)
     language_tag = language.upper()
@@ -798,11 +906,15 @@ def gen_language_data(language: str, army: {}, global_language_data: {}):
             else:
                 value += line + "%\n"
         res += "\\newcommand{" + el + "}" + params + "{%\n" + value + "%\n}\n"
-    return res
+    return START_LANG_MARKER + res + END_LANG_MARKER
 
 
 def generate_filename(army: {}, language: str):
     return f"T9A-FB_2ed_{gen_army_name_initials(army)}_{army['version'].replace(' ', '_')}_{language.upper()}.pdf"
+
+
+def generate_filename_zip(army: {}):
+    return f"T9A-FB_2ed_{gen_army_name_initials(army)}_{army['version'].replace(' ', '_')}.zip"
 
 
 def gen_army_specific_rules(army: {}):
@@ -915,10 +1027,11 @@ def gen_specialitems_type(listItems: [{}]):
         restriction = item['restriction'] + "{}" if len(item['restriction']) > 0 else ""
         rules = item['rules'] + "{}" if len(item['rules']) > 0 else ""
         logger_router.info(f"item: {item['type']} {item['name']}")
-        res += f"\\itementry{{\ntype= {item['type']},\nname= {item['name']}{{}},\ncost= {cost},\nenchantment={enchantment},\n" \
-               f"maxnumber={maxNb},\ndominant={dominant},\nrestriction= {restriction},\n" \
-               f"rules= {rules},\n}}\n"
-    res += "\\endsortedpricelist\n"
+        res += START_ITEM_MARKER + START_ITEM_NAME_MARKER + item['name'].replace("\\", "") + END_ITEM_NAME_MARKER \
+               + f"\\itementry{{\ntype= {item['type']},\nname= {item['name']}{{}},\ncost= {cost},\nenchantment={enchantment},\n" \
+                 f"maxnumber={maxNb},\ndominant={dominant},\nrestriction= {restriction},\n" \
+                 f"rules= {rules},\n}}\n"
+    res += "\\endsortedpricelist\n" + END_ITEM_MARKER
     return res
 
 
@@ -1209,29 +1322,30 @@ def gen_units_internal(category: {}, unitList: [], army: {}):
     titleName = category['name'].replace('\\', '').replace('{}', '')
     res = f"\\armylisttitle{{{titleName}}}{{{category['name']}}}{{{limitVal}}}\n"
     for u in unitList:
-        res += f"\\unitentry{{%\nname={u['name']}{{}},\n" \
-               f"logo={category['logo']},\n" \
-               f"fluff={u['fluff'] if 'fluff' in u else ''},\n" \
-               f"{gen_additional_categories(u, army['armyOrganisation']['categories'])}" \
-               f"{gen_category_change(u, army['armyOrganisation']['categories'])}" \
-               f"cost={u['cost'] if u['cost'] > 0 else ''},\n" \
-               f"unitsize={u['unitSize'] if u['unitSize'] > 0 else ''},\n" \
-               f"maxunitsize={u['maxunitsize'] if 'maxunitsize' in u and u['maxunitsize'] > 0 else ''},\n" \
-               f"costpermodel={u['costpermodel'] if 'costpermodel' in u and u['costpermodel'] > 0 else ''},\n" \
-               f"scoring={'yes' if is_scoring(u) else ''},\n" \
-               f"{gen_restrictions(u)}" \
-               f"type={gen_unit_type(u['type'])},\n" \
-               f"size={gen_unit_height(u['height'])},\n" \
-               f"basesize={gen_base_size(u['baseSize'])},\n" \
-               f"{gen_profile(u['profile'])},\n" \
-               f"{gen_options(u['options'])}" \
-               f"{gen_options_mounts(u['options'])}" \
-               f"{gen_options_magic(u['options'])}" \
-               f"{gen_options_cg(u['options'])}" \
-               f"{gen_paths(u)}" \
-               f"modelrulesdef={gen_unit_specific_rules(u, army, False)},\n" \
-               f"optionalmodelrulesdef={gen_unit_specific_rules(u, army, True)},\n" \
-               f"}} % END UNIT ENTRY\n"
+        res += START_UNIT_MARKER + START_UNIT_NAME_MARKER + u['name'].replace("\\", "") + END_UNIT_NAME_MARKER \
+               + f"\\unitentry{{%\nname={u['name']}{{}},\n" \
+                 f"logo={category['logo']},\n" \
+                 f"fluff={u['fluff'] if 'fluff' in u else ''},\n" \
+                 f"{gen_additional_categories(u, army['armyOrganisation']['categories'])}" \
+                 f"{gen_category_change(u, army['armyOrganisation']['categories'])}" \
+                 f"cost={u['cost'] if u['cost'] > 0 else ''},\n" \
+                 f"unitsize={u['unitSize'] if u['unitSize'] > 0 else ''},\n" \
+                 f"maxunitsize={u['maxunitsize'] if 'maxunitsize' in u and u['maxunitsize'] > 0 else ''},\n" \
+                 f"costpermodel={u['costpermodel'] if 'costpermodel' in u and u['costpermodel'] > 0 else ''},\n" \
+                 f"scoring={'yes' if is_scoring(u) else ''},\n" \
+                 f"{gen_restrictions(u)}" \
+                 f"type={gen_unit_type(u['type'])},\n" \
+                 f"size={gen_unit_height(u['height'])},\n" \
+                 f"basesize={gen_base_size(u['baseSize'])},\n" \
+                 f"{gen_profile(u['profile'])},\n" \
+                 f"{gen_options(u['options'])}" \
+                 f"{gen_options_mounts(u['options'])}" \
+                 f"{gen_options_magic(u['options'])}" \
+                 f"{gen_options_cg(u['options'])}" \
+                 f"{gen_paths(u)}" \
+                 f"modelrulesdef={gen_unit_specific_rules(u, army, False)},\n" \
+                 f"optionalmodelrulesdef={gen_unit_specific_rules(u, army, True)},\n" \
+                 f"}} % END UNIT ENTRY\n" + END_UNIT_MARKER
     return res + "\\clearpage\n"
 
 

@@ -2,10 +2,13 @@ import logging
 
 from django.db import models
 from django_better_admin_arrayfield.models.fields import ArrayField
+from .mongo_models import START_SUB_IMPORT_MARKER, START_SUB_IMPORT_NAME_MARKER, END_SUB_IMPORT_NAME_MARKER, END_SUB_IMPORT_MARKER
 
 SUB_IMPORT_BALISE = "$INIT_SUB_IMPORTS$"
 TITLE_IMPORT_BALISE = "$TITLE_IMPORT$"
 BOOK_SUB_IMPORT_BALISE = "$BOOK_SUB_IMPORT$"
+
+
 
 
 class PublicArmy(models.Model):
@@ -39,7 +42,7 @@ class LatexTemplate(models.Model):
             return "\\additionalspacebeforemaintitle{}\n"
         return ""
 
-    def getWithSubImports(self):
+    def getWithSubImports(self, first_call : bool = False):
         subImport = ""
         init_sub_imports = self.init_sub_imports.all()
         init_sub_imports = [(si, SubLatexInitImport.objects.get(owner=self, sublatex=si)) for si in init_sub_imports]
@@ -64,8 +67,10 @@ class LatexTemplate(models.Model):
             subImport += self.convertToLatex(data.space)
             counter += 1
         res = res.replace(BOOK_SUB_IMPORT_BALISE, subImport)
-
-        return res
+        if first_call:
+            return res
+        return START_SUB_IMPORT_MARKER + START_SUB_IMPORT_NAME_MARKER + self.name + END_SUB_IMPORT_NAME_MARKER \
+            + res + END_SUB_IMPORT_MARKER
 
 
 class SubLatexImports(models.Model):

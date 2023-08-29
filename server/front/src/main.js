@@ -18,7 +18,6 @@ const routes = [
   { path: '/army/:name/:version', component: ArmyEditor, props: route => ({ ...route.params }) },
 ]
 const router = new VueRouter({
-  mode: 'history',
   routes, // short for `routes: routes`
 })
 
