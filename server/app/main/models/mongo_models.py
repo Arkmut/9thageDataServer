@@ -645,6 +645,7 @@ RSC_PATH = "./rsc"
 ARMY_NAME_TAG_BALISE = "$ARMY_NAME_TAG$"
 ARMY_NAME_BALISE = "$ARMY_NAME$"
 ARMY_VERSION_BALISE = "$ARMY_VERSION$"
+ALPHA_BETA_VERSION_BALISE = "$ALPHA_BETA_VERSION$"
 CURRENT_DATE_BALISE = "$CURRENT_DATE$"
 ARMY_INITIALS_BALISE = "$ARMY_INITIALS$"
 CHANGELOG_BALISE = "$CHANGELOG$"
@@ -792,17 +793,17 @@ def format_template_readable(army: {}, date, date_format, template: str, languag
     logger_router.info(f"end formatting: {army['name']} {language}")
 
     total_file = total_file.replace(RSC_PATH, "..")
-    total_file = total_file.replace("../"+gen_army_name(army), ".")
+    total_file = total_file.replace("../" + gen_army_name(army), ".")
 
     language_data = total_file[total_file.index(START_LANG_MARKER):]
-    language_data = language_data[0:language_data.index(END_LANG_MARKER)+len(END_LANG_MARKER)]
+    language_data = language_data[0:language_data.index(END_LANG_MARKER) + len(END_LANG_MARKER)]
     total_file = total_file.replace(language_data, "\\subimport{language_specific/\languagetag/}{dictionnary.tex}\n")
-    #remove global translations
+    # remove global translations
     for loc_item in global_language[language].keys():
         header = f"\\newcommand{{{loc_item}}}"
         index_loc = language_data.index(header)
         next_loc = "\\newcommand{"
-        if next_loc in language_data[index_loc+len(header):]:
+        if next_loc in language_data[index_loc + len(header):]:
             end_index = index_loc + len(header) + language_data[index_loc + len(header):].index(next_loc)
             logger_router.info(f"loc: {loc_item} {index_loc} {end_index} {language_data[index_loc:end_index]}")
             language_data = language_data[:index_loc] + language_data[end_index:]
@@ -819,10 +820,11 @@ def format_template_readable(army: {}, date, date_format, template: str, languag
 
     while START_UNIT_MARKER in armylist:
         unit = armylist[armylist.index(START_UNIT_MARKER):]
-        unit = unit[0:unit.index(END_UNIT_MARKER)+len(END_UNIT_MARKER)]
+        unit = unit[0:unit.index(END_UNIT_MARKER) + len(END_UNIT_MARKER)]
         name = unit[unit.index(START_UNIT_NAME_MARKER) + len(START_UNIT_NAME_MARKER):]
         name = name[0:name.index(END_UNIT_NAME_MARKER)]
-        logger_router.info(f"unit: {name}, {unit.index(START_UNIT_NAME_MARKER)},{unit.index(END_UNIT_NAME_MARKER)}, {unit}")
+        logger_router.info(
+            f"unit: {name}, {unit.index(START_UNIT_NAME_MARKER)},{unit.index(END_UNIT_NAME_MARKER)}, {unit}")
         armylist = armylist.replace(unit, f"\\subimport{{armylistfolder}}{{{name}.tex}}\n")
         filelist["common/armylistfolder"].append((f"{name}", unit, "tex"))
     filelist["common"].append(("armylist", armylist, "tex"))
@@ -832,7 +834,7 @@ def format_template_readable(army: {}, date, date_format, template: str, languag
     total_file = total_file.replace(specialitems, "\\subimport{common}{specialitems.tex}\n")
     while START_ITEM_MARKER in specialitems:
         item = specialitems[specialitems.index(START_ITEM_MARKER):]
-        item = item[0:item.index(END_ITEM_MARKER)+len(END_ITEM_MARKER)]
+        item = item[0:item.index(END_ITEM_MARKER) + len(END_ITEM_MARKER)]
         name = item[item.index(START_ITEM_NAME_MARKER) + len(START_ITEM_NAME_MARKER):]
         name = name[0:name.index(END_ITEM_NAME_MARKER)]
         specialitems = specialitems.replace(item, f"\\subimport{{specialitemsfolder}}{{{name}.tex}}\n")
@@ -841,14 +843,36 @@ def format_template_readable(army: {}, date, date_format, template: str, languag
 
     while START_SUB_IMPORT_MARKER in total_file:
         subimport = total_file[total_file.index(START_SUB_IMPORT_MARKER):]
-        subimport = subimport[0:subimport.index(END_SUB_IMPORT_MARKER)+len(END_SUB_IMPORT_MARKER)]
+        subimport = subimport[0:subimport.index(END_SUB_IMPORT_MARKER) + len(END_SUB_IMPORT_MARKER)]
         name = subimport[subimport.index(START_SUB_IMPORT_NAME_MARKER) + len(START_SUB_IMPORT_NAME_MARKER):]
         name = name[0:name.index(END_SUB_IMPORT_NAME_MARKER)]
         total_file = total_file.replace(subimport, f"\\subimport{{}}{{{name}.tex}}\n")
         filelist[""].append((f"{name}", subimport, "tex"))
 
-    filelist[""].append((f"{generate_filename(army,language).replace('.pdf','')}", total_file, "tex"))
+    filelist[""].append((f"{generate_filename(army, language)}", total_file, "tex"))
     return filelist
+
+
+def gen_alpha_beta(army):
+    tag = "alpha"
+    if tag in army['version'].lower():
+        v_num = army['version'][army['version'].index(tag) + len(tag) + 1:]
+        return f"\\newcommand{{\\{tag}version}}{{\\newrule{v_num}}}%"
+    tag = "beta"
+    if tag in army['version'].lower():
+        v_num = army['version'][army['version'].index(tag) + len(tag) + 1:]
+        return f"\\newcommand{{\\{tag}version}}{{\\newrule{v_num}}}%"
+    return ""
+
+
+def gen_version(version):
+    tag = "alpha"
+    if tag in version.lower():
+        return version[:version.index(tag)]
+    tag = "beta"
+    if tag in version.lower():
+        return version[:version.index(tag)]
+    return version
 
 
 def format_template(army: {}, date, date_format, template: str, language: str, global_language: {}):
@@ -858,7 +882,8 @@ def format_template(army: {}, date, date_format, template: str, language: str, g
     template = template.replace(RSC_PATH_BALISE, RSC_PATH)
     template = template.replace(ARMY_NAME_TAG_BALISE, name_tag)
     template = template.replace(ARMY_NAME_BALISE, army['name'])
-    template = template.replace(ARMY_VERSION_BALISE, army['version'])
+    template = template.replace(ARMY_VERSION_BALISE, gen_version(army['version']))
+    template = template.replace(ALPHA_BETA_VERSION_BALISE, gen_alpha_beta(army))
     template = template.replace(CURRENT_DATE_BALISE, date.strftime(date_format))
     template = template.replace(ARMY_INITIALS_BALISE, name_initials)
     template = template.replace(LANGUAGE_DEF_BALISE, gen_language_def(language))
@@ -910,7 +935,7 @@ def gen_language_data(language: str, army: {}, global_language_data: {}):
 
 
 def generate_filename(army: {}, language: str):
-    return f"T9A-FB_2ed_{gen_army_name_initials(army)}_{army['version'].replace(' ', '_')}_{language.upper()}.pdf"
+    return f"T9A-FB_2ed_{gen_army_name_initials(army)}_{army['version'].replace(' ', '_')}_{language.upper()}"
 
 
 def generate_filename_zip(army: {}):
