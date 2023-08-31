@@ -810,7 +810,10 @@ def format_template_readable(army: {}, date, date_format, template: str, languag
         else:
             logger_router.info(f"loc: {loc_item} {index_loc} {language_data[index_loc:]}")
             language_data = language_data[:index_loc]
-
+    # remove unnecessary %
+    logger_router.info(f"\n\n\nBEFORE\n\n\n{language_data}")
+    language_data = re.sub("^%\n","",language_data,flags=re.MULTILINE)
+    logger_router.info(f"\n\n\nAFTER_REGEX\n\n\n{language_data}")
     filelist["language_specific/" + language].append(("dictionnary", language_data, "tex"))
 
     armylist = total_file[total_file.index(START_UNIT_MARKER):]

@@ -148,10 +148,7 @@
                         });
                     for(let i =0;i<Object.keys(response.data).length;i++){
                         let key= Object.keys(response.data)[i];
-                        this.newTranslationEntryName =key;
-                        if(!(key in this.translations)){
-                            this.addTranslationEntry(false);
-                        }
+                        this.$emit('rmTranslationEntry', key);
                         this.updateTranslation({target:{value:response.data[key]}},key);
 
                     }
