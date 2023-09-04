@@ -52,8 +52,8 @@
 \newcommand{\predotfill}{\penalty0\hbox{}\nobreak} % avoiding a cost being printed at the beginning of a new line => it goes to the end of the line instead
 
 \newcommand{\boosted}[1]{\textbf{\textcolor{blue}{\strut$\{$#1$\}$\strut}}}
-\newcommand{\base}[1]{\textcolor{red}{\leftspecialbracket{}#1\rightspecialbracket{}}}
-\newcommand{\specialboosted}[1]{\textbf{\textcolor{olive}{\leftspecialbracket{}\hspace*{-0.4ex}\leftspecialbracket{}#1\rightspecialbracket{}\hspace*{-0.4ex}\rightspecialbracket{}}}}
+\newcommand{\base}[1]{\textcolor{red}{$\langle$#1$\rangle$}}
+\newcommand{\specialboosted}[1]{\textbf{\textcolor{olive}{$\langle\!\langle$#1$\rangle\!\rangle$}}}
 
 \newcommand{\cboosted}[1]{\textcolor{blue}{#1}}
 \newcommand{\cbase}[1]{\textcolor{red}{#1}}
@@ -110,7 +110,13 @@ $\rangle$%
 \newcommand{\range}[1] {\labels@range~#1\si{\inch}}
 \newcommand{\distance}[1] {#1\si{\inch}}
 \newcommand{\result}[1] {‘#1’}
-\newcommand{\pts}[1]{\isitoneornot{#1}{#1~\labels@point}{#1~\labels@points}}
+\newcommand{\pts}[1]{%
+	\expandafter\ifsubstring\expandafter{#1}{\free}%
+		{\free}%
+		{\isitoneornot{#1}{#1~\labels@point}{#1~\labels@points}}%
+}%
+
+% \expandafter\ifsubstring\expandafter{#2}{\free}{\free}{\pts{#2}}
 
 %%% Points removal %%%
 
@@ -144,6 +150,14 @@ $\rangle$%
 
 \newcommand{\ChLab}[1]{{\normalfontsize\greytextcolor{\textit{#1}}}} % Font for Characteristic's labels
 \newcommand{\ChVal}[1]{\textbf{#1}} % Font for Characteristic's values
+\newcommand{\ChValDash}[1]{ % Font for Characteristic's values, if empty, prints -
+	\expandafter\ifblank\expandafter{#1}{-}{\textbf{#1}}}%
+\newcommand{\ChValZero}[1]{ % Font for Characteristic's values, if empty, prints 0
+	\expandafter\ifblank\expandafter{#1}{\textbf{0}}{\textbf{#1}}}%
+\newcommand{\ChValDistance}[1]{ % Font for Characteristic's values, Adds " unless empty or C is inside
+	\expandafter\ifblank\expandafter{#1}{}{
+		\ifsubstring{#1}{\ascharacter}{\textbf{#1}}{\textbf{\distance{#1}}}%
+	}}%
 
 \newcommand{\suboptionindent}{\hspace*{0.6cm}}
 \newcommand{\optionnewlineindent}{\hspace*{0.3cm}}

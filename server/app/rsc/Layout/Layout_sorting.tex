@@ -1,112 +1,77 @@
 
 \newcommand{\addtosortedlist}[1]{%
-	\ifsubstring{#1}{<STICKTO<}{%
-		\def\prefixforsorting{}%
-		\def\actualname{}%
-		\splitatstickto{#1}{\prefixforsorting}{\actualname}%
-		\pdfstringdef\textwithoutformatting{#1}%
-		\pdfsubstitute\textwithoutformatting{<STICKTO<}{}%
-		\pdfsubstitute\textwithoutformatting{[}{}%
-		\pdfsubstitute\textwithoutformatting{\{}{}%
-		\pdfsubstitute\textwithoutformatting{'}{}%
-		\pdfsubstitute\textwithoutformatting{ }{}%
-		\dolanguagespecificsubstitute{}%
-		\def\tempoaddcommand{\sortitem{\textwithoutformatting}}%
-		\expandafter\tempoaddcommand\expandafter{\actualname}%	
+	% we try to find the <STICKTO< note in the string, avoiding full expansion
+    \saveexpandmode%
+    \expandarg\StrCut{#1}{<STICKTO<}{\prefixforsorting}{\actualname}%
+	\restoreexpandmode%       	    
+	\expandafter\ifblank\expandafter{\actualname}{%
+		% no STICKTO found, procede with the original string
+		\sortitem{#1}{#1}%
 	}{%
-	\pdfstringdef\textwithoutformatting{#1}%
-	\pdfsubstitute\textwithoutformatting{[}{}%
-	\pdfsubstitute\textwithoutformatting{\{}{}%
-	\pdfsubstitute\textwithoutformatting{'}{}%
-	\pdfsubstitute\textwithoutformatting{ }{}%
-	\dolanguagespecificsubstitute{}%
-	\sortitem{\textwithoutformatting}{#1}%
+		\expandafter\sortitem\expandafter{\actualname}{\prefixforsorting}%
 	}%
 }%
+\newcommand{\sortitem}[2]{%
+	\DTLnewrow{alphaorderlist}% Create a new entry
+	% Add entry description
+	\def\DTLentrycommand{\DTLnewdbentry{alphaorderlist}{description}}%
+	\DTLentrycommand{#1}% 
+	% Add entry sortlabel
+	\def\DTLentrycommand{\DTLnewdbentry{alphaorderlist}{sortlabel}}%
+	\cleanstringforsorting{#2}% output is saved to \textwithoutformatting
+	\expandafter\DTLentrycommand\expandafter{\textwithoutformatting}%
+}
 
 \newcommand{\addtosortedlistwithcost}[1]{%
-	\ifsubstring{#1}{<STICKTO<}{%
-		\def\prefixforsorting{}%
-		\def\actualname{}%
-		\splitatstickto{#1}{\prefixforsorting}{\actualname}%
-		\pdfstringdef\textwithoutformatting{\prefixforsorting}%
-		\pdfsubstitute\textwithoutformatting{[}{}%
-		\pdfsubstitute\textwithoutformatting{\{}{}%
-		\pdfsubstitute\textwithoutformatting{'}{}%
-		\pdfsubstitute\textwithoutformatting{ }{}%
-		\dolanguagespecificsubstitute{}%
-		\def\textwithoutcost{}%
-		\def\costwewanttoextract{}%
-		\StrCut{\prefixforsorting}{=}{\textwithoutcost}{\costwewanttoextract}%
-		\pdfstringdef\costwithoutformatting{\costwewanttoextract}%
-		\pdfsubstitute\costwithoutformatting{ }{}%
-		\pdfsubstitute\costwithoutformatting{\free}{0}%
-		\pdfsubstitute\costwithoutformatting{\permodel}{}%
-		\pdfsubstitute\costwithoutformatting{\nolimit}{999999}%
-		\substitute\costwithoutformatting{\string\376}{}%
-		\substitute\costwithoutformatting{\string\377}{}%
-		\substitute\costwithoutformatting{\string\000}{}%
-		\def\tempoaddcommand{\sortitemwithcost{\textwithoutformatting}}%
-		\expandafter\tempoaddcommand\expandafter{\actualname}{\costwithoutformatting}%
+    \saveexpandmode%
+    \expandarg%
+    \StrCut{#1}{<STICKTO<}{\prefixforsorting}{\actualname}%
+	\expandafter\ifblank\expandafter{\actualname}{%
+		% no STICKTO found, procede with the original string
+		\noexpandarg%
+		\StrCut{#1}{=}{\textwithoutcost}{\costwewanttoextract}%
+		\restoreexpandmode%
+		\sortitemwithcost{#1}{#1}{\costwewanttoextract}%
 	}{%
-	\pdfstringdef\textwithoutformatting{#1}%
-	\pdfsubstitute\textwithoutformatting{[}{}%
-	\pdfsubstitute\textwithoutformatting{\{}{}%
-	\pdfsubstitute\textwithoutformatting{'}{}%
-	\pdfsubstitute\textwithoutformatting{ }{}%
-	\dolanguagespecificsubstitute{}%
-	\def\textwithoutcost{}%
-	\def\costwewanttoextract{}%
-	\StrCut{#1}{=}{\textwithoutcost}{\costwewanttoextract}%
-	\pdfstringdef\costwithoutformatting{\costwewanttoextract}%
-	\pdfsubstitute\costwithoutformatting{ }{}%
-	\pdfsubstitute\costwithoutformatting{\free}{0}%
-	\pdfsubstitute\costwithoutformatting{\permodel}{}%
-	\pdfsubstitute\costwithoutformatting{\nolimit}{999999}%
-	\substitute\costwithoutformatting{\string\376}{}%
-	\substitute\costwithoutformatting{\string\377}{}%
-	\substitute\costwithoutformatting{\string\000}{}%
-	\sortitemwithcost{\textwithoutformatting}{#1}{\costwithoutformatting}%
+		\fullexpandarg%
+		\StrCut{\prefixforsorting}{=}{\textwithoutcost}{\costwewanttoextract}%		
+		\restoreexpandmode%
+		\expandafter\sortitemwithcost\expandafter{\actualname}{\textwithoutcost}{\costwewanttoextract}%		
 	}%
 }%
+\newcommand{\sortitemwithcost}[3]{%
+	\DTLnewrow{alphaandcostorderlist}% Create a new entry
+	% Add entry description
+	\def\DTLentrycommand{\DTLnewdbentry{alphaandcostorderlist}{description}}%
+	\DTLentrycommand{#1}% 
+	% Add entry sortlabel
+	\def\DTLentrycommand{\DTLnewdbentry{alphaandcostorderlist}{sortlabel}}%
+	\cleanstringforsorting{#2}% output is saved to \textwithoutformatting			
+	\expandafter\DTLentrycommand\expandafter{\textwithoutformatting}%
+	% Add entry cost
+	\def\DTLentrycommand{\DTLnewdbentry{alphaandcostorderlist}{cost}}%
+	\cleannumberforsorting{#3}% output is saved to \costtwithoutformatting
+	\expandafter\DTLentrycommand\expandafter{\costwithoutformatting}%
+}%
 
+% Paths are defined as
+% <path name>=<path icon>
 \newcommand{\addtopathlist}[1]{%
 	\DTLnewrow{pathlist}% Create a new entry
 	\def\textwithouticon{}%
 	\def\pathiconname{}%
-	\noexpandarg\StrCut{#1}{=}{\textwithouticon}{\pathiconname}%
+	\saveexpandmode%
+	\noexpandarg%
+	\StrCut{#1}{=}{\textwithouticon}{\pathiconname}%
+	\restoreexpandmode%	
 	\def\DTLentrycommand{\DTLnewdbentry{pathlist}{name}}%
 	\expandafter\DTLentrycommand\expandafter{\textwithouticon}% Add name
 	\def\DTLentrycommand{\DTLnewdbentry{pathlist}{icon}}%
 	\expandafter\DTLentrycommand\expandafter{\pathiconname}% Add icon name
-	\pdfstringdef\textwithoutformatting{\textwithouticon}%
-	\pdfsubstitute\textwithoutformatting{'}{}%
-	\pdfsubstitute\textwithoutformatting{ }{}%
-	\dolanguagespecificsubstitute{}%
-	\substitute\textwithoutformatting{\string\376}{}%
-	\substitute\textwithoutformatting{\string\377}{}%
-	\substitute\textwithoutformatting{\string\000}{}%
+	\cleanstringforsorting{\textwithouticon}% output is saved to \textwithoutformatting		
 	\def\DTLentrycommand{\DTLnewdbentry{pathlist}{sortlabel}}%
 	\expandafter\DTLentrycommand\expandafter{\textwithoutformatting}% Add entry sortlabel	
 }%
-
-\newcommand{\sortitem}[2]{%
-	\DTLnewrow{alphaorderlist}% Create a new entry
-	\def\DTLentrycommand{\DTLnewdbentry{alphaorderlist}{sortlabel}}%
-	\expandafter\DTLentrycommand\expandafter{#1}% Add entry sortlabel
-	\def\DTLentrycommand{\DTLnewdbentry{alphaorderlist}{description}}%
-	\DTLentrycommand{#2}% Add entry description
-}
-
-\newcommand{\sortitemwithcost}[3]{%
-	\DTLnewrow{alphaandcostorderlist}% Create a new entry
-	\def\DTLentrycommand{\DTLnewdbentry{alphaandcostorderlist}{sortlabel}}%
-	\expandafter\DTLentrycommand\expandafter{#1}% Add entry sortlabel
-	\def\DTLentrycommand{\DTLnewdbentry{alphaandcostorderlist}{description}}%
-	\DTLentrycommand{#2}% Add entry description
-	\def\DTLentrycommand{\DTLnewdbentry{alphaandcostorderlist}{cost}}%
-	\expandafter\DTLentrycommand\expandafter{#3}% Add entry cost
-}
 
 \newenvironment{sortedlist}{%
 	\DTLifdbexists{alphaorderlist}{\DTLcleardb{alphaorderlist}}{\DTLnewdb{alphaorderlist}}% Create new/discard old list

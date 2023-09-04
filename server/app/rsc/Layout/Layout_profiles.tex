@@ -1,7 +1,9 @@
 
 %%% Options %%%
 \newcommand{\setoptionitem}[1]{%
-	\noexpandarg\StrCut{#1}{=}\optiontext\optionvalue%
+	\saveexpandmode%
+	\noexpandarg%
+	\StrCut{#1}{=}\optiontext\optionvalue%
 	\expandafter\ifstrequal\expandafter{\optionvalue}{}{%
 		\StrCut{#1}{**}\beforetext\aftertext%
 		\expandafter\ifstrequal\expandafter{\beforetext}{}{%
@@ -13,6 +15,7 @@
 		
 		\item\option{\optiontext}{\optionvalue}%
 	}%
+	\restoreexpandmode%	
 }
 
 %\newcommand{\setoptionitem}[1]{\item\expandafter\setoption\expandafter{#1}}
@@ -107,7 +110,10 @@
 
 % Option specific commands.
 \newcommand{\setoption}[1]{%
-	\noexpandarg\StrCut{#1}{=}\optiontext\optionvalue%
+	\saveexpandmode%
+	\noexpandarg%
+	\StrCut{#1}{=}\optiontext\optionvalue%
+	\restoreexpandmode%		
 	\expandafter\ifstrequal\expandafter{\optionvalue}{}{%
 		\optiontext%
 	}{%
@@ -195,23 +201,10 @@
 \newcommand{\addsortedexploption}[1]{%
 	\defexploption{#1}%
 	\DTLnewrow{exploptions}%
-	\pdfstringdef\textwithoutformatting{\exploptions@name}%
-	\pdfsubstitute\textwithoutformatting{'}{}%
-	\pdfsubstitute\textwithoutformatting{ }{}%
-	\dolanguagespecificsubstitute{}%
-	\substitute\textwithoutformatting{\string\376}{}%
-	\substitute\textwithoutformatting{\string\377}{}%
-	\substitute\textwithoutformatting{\string\000}{}%
+	\cleanstringforsorting{\exploptions@name}% output is saved to \textwithoutformatting		
+	\cleannumberforsorting{\exploptions@cost}% output is saved to \costtwithoutformatting
 	\def\DTLentrycommand{\DTLnewdbentry{exploptions}{sortlabel}}%
 	\expandafter\DTLentrycommand\expandafter{\textwithoutformatting}%	
-	\pdfstringdef\costwithoutformatting{\exploptions@cost}%
-	\pdfsubstitute\costwithoutformatting{ }{}%
-	\pdfsubstitute\costwithoutformatting{\free}{0}%
-	\pdfsubstitute\costwithoutformatting{\permodel}{}%
-	\pdfsubstitute\costwithoutformatting{\nolimit}{999999}%
-	\substitute\costwithoutformatting{\string\376}{}%
-	\substitute\costwithoutformatting{\string\377}{}%
-	\substitute\costwithoutformatting{\string\000}{}%
 	\def\DTLentrycommand{\DTLnewdbentry{exploptions}{sortcost}}%
 	\expandafter\DTLentrycommand\expandafter{\costwithoutformatting}%		
 	\def\DTLentrycommand{\DTLnewdbentry{exploptions}{prename}}%
@@ -379,50 +372,17 @@
 
 %%% Model rules %%%
 
-% Model rule entry.
-\newcommand{\modelruledef}[2]{%
-	\DTLnewrow{unitruleslist}%
-	\DTLnewdbentry{unitruleslist}{name}{#1}%
-	\DTLnewdbentry{unitruleslist}{ruletext}{#2}%
-	\pdfstringdef\textwithoutformatting{#1}%
-	\pdfsubstitute\textwithoutformatting{'}{}%
-	\pdfsubstitute\textwithoutformatting{ }{}%
-	\dolanguagespecificsubstitute{}%
-	\def\DTLentrycommand{\DTLnewdbentry{unitruleslist}{sortlabel}}%
-	\expandafter\DTLentrycommand\expandafter{\textwithoutformatting}%
-}
-
 % Model rules list and frame.
 \newcommand{\modelrulesdef}[1]{%
-	\DTLifdbexists{unitruleslist}{\DTLcleardb{unitruleslist}}{\DTLnewdb{unitruleslist}}% Create new/discard old list
 	\begin{innerframenopts}[\labels@modelrulesdef]%
-	#1%
-	\DTLifdbempty{unitruleslist}{}{%
-		\DTLsort*{sortlabel}{unitruleslist}% Sort list
-		\begin{description}[leftmargin=0.3cm, labelindent=0cm, labelsep=0.1cm, itemsep=0.15cm, parsep=0cm]%
-			\DTLforeach*{unitruleslist}{\ruletext=ruletext,\nameoftherule=name}{% Print back the ordered list
-				\item[\nameoftherule{}\spacebeforecolon{}:]\ruletext%
-			}%
-		\end{description}%
-		\DTLcleardb{unitruleslist}%
-	}
-	\end{innerframenopts}%
+		\expandafter\unitrulelist\expandafter{#1}
+	\end{innerframenopts}%	
 }%
 
 % Optional model rules list and frame.
 \newcommand{\optionalmodelrulesdef}[1]{%
-	\DTLifdbexists{unitruleslist}{\DTLcleardb{unitruleslist}}{\DTLnewdb{unitruleslist}}% Create new/discard old list
 	\begin{innerframenopts}[\labels@optionalmodelrulesdef]%
-	#1%
-	\DTLifdbempty{unitruleslist}{}{%
-		\DTLsort*{sortlabel}{unitruleslist}% Sort list
-		\begin{description}[leftmargin=0.3cm, labelindent=0cm, labelsep=0.1cm, itemsep=0.15cm, parsep=0cm]%
-			\DTLforeach*{unitruleslist}{\ruletext=ruletext,\nameoftherule=name}{% Print back the ordered list
-				\item[\nameoftherule{}\spacebeforecolon{}:]\ruletext%
-			}%
-		\end{description}%
-		\DTLcleardb{unitruleslist}%
-	}
+		\expandafter\unitrulelist\expandafter{#1}
 	\end{innerframenopts}%
 }%
 

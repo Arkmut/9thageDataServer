@@ -60,23 +60,14 @@
 	\expandafter\DTLentrycommand\expandafter{\item@wizardsonly}%
 	\def\DTLentrycommand{\DTLnewdbentry{sortedpricelist}{guidingdominant}}%
 	\expandafter\DTLentrycommand\expandafter{\item@guidingdominant}%
-	\pdfstringdef\textwithoutformatting{\item@name}%
-	\pdfsubstitute\textwithoutformatting{'}{}%
-	\pdfsubstitute\textwithoutformatting{ }{}%
-	\dolanguagespecificsubstitute{}%
+	\cleanstringforsorting{\item@name}% output is saved to \textwithoutformatting		
 	\def\DTLentrycommand{\DTLnewdbentry{sortedpricelist}{sortlabel}}%
 	\expandafter\DTLentrycommand\expandafter{\textwithoutformatting}%
-	\pdfstringdef\costwithoutformatting{\item@cost}%
-	\pdfsubstitute\costwithoutformatting{ }{}%
-	\pdfsubstitute\costwithoutformatting{\free}{0}%
-	\pdfsubstitute\costwithoutformatting{\nolimit}{999999}%
-	\substitute\costwithoutformatting{\string\376}{}%
-	\substitute\costwithoutformatting{\string\377}{}%
-	\substitute\costwithoutformatting{\string\000}{}%
+	\cleannumberforsorting{\item@cost}% output is saved to \costtwithoutformatting
 	\def\DTLentrycommand{\DTLnewdbentry{sortedpricelist}{costsortlabel}}%
 	\expandafter\DTLentrycommand\expandafter{\costwithoutformatting}%
 	\def\temphypertag{}%
-	\StrGobbleRight{\expandafter\expandafter\expandafter\@gobble\expandafter\string\item@name}{1}[\temphypertag] % remove first the \ to the left and then the {} to the right - it counts as 1 character and then bug the hyperlink tag. It will remove the last character of the macro name if there is no {} in the end of the name key. So it should always be input as "name=\fancyunitname{},". "name=\fancyunitname," will make hyperlinks crash.
+	\ConvertNameMacroToStr{\item@name}{\temphypertag} % remove first the \ to the left and then the {} to the right
 	\xdef\SPLitemhypertag{\temphypertag}% using the unit name macro to define an hypertag
 	\def\DTLentrycommand{\DTLnewdbentry{sortedpricelist}{itemhypertag}}%
 	\expandafter\DTLentrycommand\expandafter{\SPLitemhypertag}%
@@ -132,19 +123,10 @@
 	\DTLnewdbentry{sortedpricelist}{maxnumber}{}%
 	\DTLnewdbentry{sortedpricelist}{dominant}{}%
 	\DTLnewdbentry{sortedpricelist}{restriction}{}%
-	\pdfstringdef\textwithoutformatting{#1}%
-	\pdfsubstitute\textwithoutformatting{'}{}%
-	\pdfsubstitute\textwithoutformatting{ }{}%
-	\dolanguagespecificsubstitute{}%
+	\cleanstringforsorting{#1}% output is saved to \textwithoutformatting		
 	\def\DTLentrycommand{\DTLnewdbentry{sortedpricelist}{sortlabel}}%
 	\expandafter\DTLentrycommand\expandafter{\textwithoutformatting}%
-	\pdfstringdef\costwithoutformatting{#2}%
-	\pdfsubstitute\costwithoutformatting{ }{}%
-	\pdfsubstitute\costwithoutformatting{\free}{0}%
-	\pdfsubstitute\costwithoutformatting{\nolimit}{999999}%
-	\substitute\costwithoutformatting{\string\376}{}%
-	\substitute\costwithoutformatting{\string\377}{}%
-	\substitute\costwithoutformatting{\string\000}{}%
+	\cleannumberforsorting{#2}% output is saved to \costtwithoutformatting
 	\def\DTLentrycommand{\DTLnewdbentry{sortedpricelist}{costsortlabel}}%
 	\expandafter\DTLentrycommand\expandafter{\costwithoutformatting}%
 }
@@ -152,7 +134,7 @@
 \newcommand{\sortedpricelistitemhtgt}[3]{% deprecated
 	\sortedpricelistitem{#1}{#2}{#3}%
 	\def\temphypertag{}%
-	\StrGobbleRight{\expandafter\@gobble\string#1}{1}[\temphypertag] % remove first the \ to the left and then the {} to the right - it counts as 1 character and then bug the hyperlink tag. It will remove the last character of the macro name if there is no {} in the end of the name key. So it should always be input as "name=\fancyunitname{},". "name=\fancyunitname," will make hyperlinks crash.
+	\ConvertNameMacroToStr{\item@name}{\temphypertag} % remove first the \ to the left and then the {} to the right
 	\xdef\SPLitemhypertag{\temphypertag}% using the unit name macro to define an hypertag
 	\def\DTLentrycommand{\DTLnewdbentry{sortedpricelist}{itemhypertag}}%
 	\expandafter\DTLentrycommand\expandafter{\SPLitemhypertag}%

@@ -22,18 +22,19 @@
 \newcommand{\pricelistitem}[3]{%
 		% Should we add an English name after the standard name of the item?
 		\def\tempENname{}%
-		\StrGobbleRight{\expandafter\expandafter\expandafter\@gobble\expandafter\string#1}{1}[\tempENname]%
-		\expandafter\ifundef\expandafter{\csname \tempENname EN\endcsname}{% then there is nothing to add
+		\ConvertNameMacroToStr{#1}{\tempENname}%
+		\CombineStringsIntoMacroAndExpand{\tempENname}{EN}{\tempENname}%
+        \expandafter\ifblank\expandafter{\tempENname}{% then there is nothing to add				
 				\item \begin{samepage}\textbf{#1}\predotfill\hfill\nobreak\pointsblock{\pts{#2}}%
 		}{% then we add the English name
 			% Now see if it all fits on a single line
-			\setbox0=\vbox{XX\textbf{#1} \textit{(\csname \tempENname EN\endcsname)}\predotfill\hfill\nobreak\pointsblock{\pts{#2}}}%
+			\setbox0=\vbox{XX\textbf{#1} \textit{(\tempENname)}\predotfill\hfill\nobreak\pointsblock{\pts{#2}}}%
 			\categorynoteheight=\ht0 \advance\categorynoteheight by \dp0\relax% Two lines do approx. a bit less than 20 pt
 			\ifdim\categorynoteheight>15pt\relax% Name's too big we need to put it on two lines
 					\item \begin{samepage}\textbf{#1}\predotfill\hfill\nobreak\pointsblock{\pts{#2}}\newline%
-				\textit{(\csname \tempENname EN\endcsname)}%
+				\textit{(\tempENname)}%
 			\else%
-					\item \begin{samepage}\textbf{#1} \textit{(\csname \tempENname EN\endcsname)}\predotfill\hfill\nobreak\pointsblock{\pts{#2}}%
+					\item \begin{samepage}\textbf{#1} \textit{(\tempENname)}\predotfill\hfill\nobreak\pointsblock{\pts{#2}}%
 			\fi%
 		}%
 		\newline{}#3%
@@ -61,40 +62,77 @@
 
 %%% Army Model Rules sorting
 
+\newcommand{\BigArmyModelRule}[3][]{%
+% [optional] Rule type
+% Name
+% text
+	\ConvertNameMacroToStr{#2}{\tempENname}%
+	\CombineStringsIntoMacroAndExpand{\tempENname}{EN}{\tempENname}%
+	\subsubtitle{%
+		#2%
+		\expandafter\ifblank\expandafter{\tempENname}{}{\textnormal{\largefontsize{} \textit{(\tempENname)}}}% 
+		\expandafter\ifblank\expandafter{#1}{}{\textnormal{\largefontsize{} -- #1}}%
+	}%
+	#3\par%
+}%
+
+
 \newcommand{\startAMRsortedlist}{%
 	\DTLifdbexists{AMRlist}{\DTLcleardb{AMRlist}}{\DTLnewdb{AMRlist}}% Create new/discard old list
 }
 
-\newcommand{\closeAMRsortedlist}{%
+\newcommand{\closeAMRsortedlist}[1][-]{%
+% optional flag
+% [-] - nothing [default]
+% [m] - use minipage
 	\DTLsort*{sortlabel}{AMRlist}% Sort list
 	\DTLforeach*{AMRlist}{\name=name,\ruletext=ruletext,\AMRruletype=ruletype}{%
-		% Should we add an English name after the standard name of the item?
-		\def\tempENname{}%
-		\StrGobbleRight{\expandafter\expandafter\expandafter\@gobble\expandafter\string\name}{1}[\tempENname]%
-		\expandafter\ifundef\expandafter{\csname \tempENname EN\endcsname}{% then there is nothing to add
-			\subsubtitle{\name{}%
-				\ifdefempty{\AMRruletype}{}{\textnormal{\largefontsize{} -- \AMRruletype}}%
-			}%
-			\ruletext{}\par%
-		}{%
-			\subsubtitle{\name{} \textnormal{\largefontsize{} \textit{(\csname \tempENname EN\endcsname)}}%
-				\ifdefempty{\AMRruletype}{}{\textnormal{\largefontsize{} -- \AMRruletype}}%
-			}%
-			\ruletext{}\par%
-		}%
-	}
+		\if m#1% 
+			\begin{minipage}{\columnwidth}%
+		\fi%
+		\BigArmyModelRule[\AMRruletype]{\name}{\ruletext}%
+		\if m#1% 
+			\end{minipage}%
+			\vspace{20pt}\newline%
+		\fi%		
+	}%
 	\DTLcleardb{AMRlist}%
-}
+}%
 
 \newcommand{\AMRsortedlistentry}[3][]{%
 	\DTLnewrow{AMRlist}%
-	\pdfstringdef\textwithoutformatting{#2}%
-	\pdfsubstitute\textwithoutformatting{'}{}%
-	\pdfsubstitute\textwithoutformatting{ }{}%
-	\dolanguagespecificsubstitute{}%
+	\cleanstringforsorting{#2}% output is saved to \textwithoutformatting		
 	\def\DTLentrycommand{\DTLnewdbentry{AMRlist}{sortlabel}}%
 	\expandafter\DTLentrycommand\expandafter{\textwithoutformatting}%
 	\DTLnewdbentry{AMRlist}{name}{#2}%
 	\DTLnewdbentry{AMRlist}{ruletext}{#3}%
 	\DTLnewdbentry{AMRlist}{ruletype}{#1}%
+}
+
+
+
+%%% Model rules %%%
+
+% Model rule entry.
+\newcommand{\modelruledef}[2]{%
+	\DTLnewrow{unitruleslist}%
+	\DTLnewdbentry{unitruleslist}{name}{#1}%
+	\DTLnewdbentry{unitruleslist}{ruletext}{#2}%
+	\cleanstringforsorting{#1}% output is saved to \textwithoutformatting		
+	\def\DTLentrycommand{\DTLnewdbentry{unitruleslist}{sortlabel}}%
+	\expandafter\DTLentrycommand\expandafter{\textwithoutformatting}%
+}
+
+\newcommand{\unitrulelist}[1]{%
+	\DTLifdbexists{unitruleslist}{\DTLcleardb{unitruleslist}}{\DTLnewdb{unitruleslist}}% Create new/discard old list
+	#1%
+	\DTLifdbempty{unitruleslist}{}{%
+		\DTLsort*{sortlabel}{unitruleslist}% Sort list
+		\begin{description}[leftmargin=0.3cm, labelindent=0cm, labelsep=0.1cm, itemsep=0.15cm, parsep=0cm]%
+			\DTLforeach*{unitruleslist}{\ruletext=ruletext,\nameoftherule=name}{% Print back the ordered list
+				\item[\nameoftherule{}\spacebeforecolon{}:]\ruletext%
+			}%
+		\end{description}%
+		\DTLcleardb{unitruleslist}%
+	}
 }

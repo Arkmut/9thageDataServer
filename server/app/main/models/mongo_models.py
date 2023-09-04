@@ -797,7 +797,10 @@ def format_template_readable(army: {}, date, date_format, template: str, languag
 
     language_data = total_file[total_file.index(START_LANG_MARKER):]
     language_data = language_data[0:language_data.index(END_LANG_MARKER) + len(END_LANG_MARKER)]
-    total_file = total_file.replace(language_data, "\\subimport{language_specific/\languagetag/}{dictionnary.tex}\n")
+    total_file = total_file.replace(language_data,
+                                    "\\subimport{language_specific/\languagetag/}{dictionnary.tex}\n" +
+                                    "\\subimport{language_specific/\languagetag/}{dictionnary_fluff.tex}\n")
+    fluff_data = ""
     # remove global translations
     for loc_item in global_language[language].keys():
         header = f"\\newcommand{{{loc_item}}}"
@@ -805,16 +808,26 @@ def format_template_readable(army: {}, date, date_format, template: str, languag
         next_loc = "\\newcommand{"
         if next_loc in language_data[index_loc + len(header):]:
             end_index = index_loc + len(header) + language_data[index_loc + len(header):].index(next_loc)
-            logger_router.info(f"loc: {loc_item} {index_loc} {end_index} {language_data[index_loc:end_index]}")
             language_data = language_data[:index_loc] + language_data[end_index:]
         else:
-            logger_router.info(f"loc: {loc_item} {index_loc} {language_data[index_loc:]}")
             language_data = language_data[:index_loc]
     # remove unnecessary %
-    logger_router.info(f"\n\n\nBEFORE\n\n\n{language_data}")
-    language_data = re.sub("^%\n","",language_data,flags=re.MULTILINE)
-    logger_router.info(f"\n\n\nAFTER_REGEX\n\n\n{language_data}")
+    language_data = re.sub("^%\n", "", language_data, flags=re.MULTILINE)
+    # split fluff
+    for loc_item in army["loc"][language].keys():
+        if "fluff" in loc_item:
+            header = f"\\newcommand{{{loc_item}}}"
+            index_loc = language_data.index(header)
+            next_loc = "\\newcommand{"
+            if next_loc in language_data[index_loc + len(header):]:
+                end_index = index_loc + len(header) + language_data[index_loc + len(header):].index(next_loc)
+                fluff_data += language_data[index_loc:end_index] + "\n"
+                language_data = language_data[:index_loc] + language_data[end_index:]
+            else:
+                fluff_data += language_data[index_loc:]
+                language_data = language_data[:index_loc]
     filelist["language_specific/" + language].append(("dictionnary", language_data, "tex"))
+    filelist["language_specific/" + language].append(("dictionnary_fluff", fluff_data, "tex"))
 
     armylist = total_file[total_file.index(START_UNIT_MARKER):]
     armylist = armylist[0:armylist.rindex(END_UNIT_MARKER) + len(END_UNIT_MARKER)]
@@ -898,7 +911,7 @@ def format_template(army: {}, date, date_format, template: str, language: str, g
     template = gen_specialitems(army, template)
     template = gen_army_organisation(army, template)
     template = gen_army_list(army, template)
-    template = gen_qrs(army, template)
+    template = gen_qrs(army, template, language)
     # TODO changelog
     changelog = ""
     template = template.replace(CHANGELOG_BALISE, changelog)
@@ -1396,7 +1409,7 @@ def gen_army_list(army: {}, template: str):
     return template
 
 
-def gen_shooting_weapons(army):
+def gen_shooting_weapons(army, language):
     res = "\\centeredsubtitle{\\shootingweapons}\n\\startartillerytable\n"
     ruleList = []
     # we search global model rules first
@@ -1414,7 +1427,8 @@ def gen_shooting_weapons(army):
         return ""
     for r in ruleList:
         definitionFlag = 'definition' if 'definition' in r else 'rules'
-        definition = army['loc']['en'][r[definitionFlag].replace('{}', '')]
+        def_value = r[definitionFlag].replace('{}', '')
+        definition = army['loc'][language][def_value] if def_value in army['loc'][language] else r[definitionFlag]
         logger_router.info("def: " + definition)
         rangeFlag = '\\range{'
         stFlag1 = '\\Strength{}'
@@ -1485,7 +1499,7 @@ def gen_shooting_weapons(army):
                     potentialRules.append(('', match.start(), 0))
 
                 continue
-            if not flag in army['loc']['en']:
+            if not flag in army['loc'][language]:
                 continue
             potentialRules.append((flag, match.start(), match.end()))
 
@@ -1567,8 +1581,8 @@ def gen_aim_table(army):
     return res + "\\closeaimtable\n"
 
 
-def gen_qrs(army, template):
-    template = template.replace(QRS_SHOOTING_WEAPONS_BALISE, gen_shooting_weapons(army))
+def gen_qrs(army, template, language):
+    template = template.replace(QRS_SHOOTING_WEAPONS_BALISE, gen_shooting_weapons(army, language))
     template = template.replace(QRS_AIM_TABLE_BALISE, gen_aim_table(army))
     return template
 

@@ -32,12 +32,13 @@
 \newcommand{\pdfsubstitute}[3]{%
 	% #1 is the string in which we need to substitute something
 	% #2 need to be replaced by #3
-	\pdfstringdef\specialcharcode{a#2}%
-	\pdfstringdef\tempcharcode{a}%
-	\substitute\specialcharcode{\tempcharcode}{}%
-	\pdfstringdef\replacementcharcode{a#3}%
-	\substitute\replacementcharcode{\tempcharcode}{}%
-	\substitute{#1}{\specialcharcode}{\replacementcharcode}%
+	\protected@edef\sub@temp{#1}%
+	\saveexpandmode%
+	\expandarg%
+	\definethepdfsymbolcode{#2}{\specialcharcodeA}%
+	\definethepdfsymbolcode{#3}{\specialcharcodeB}%
+	\StrSubstitute{\sub@temp}{\specialcharcodeA}{\specialcharcodeB}[#1]%
+	\restoreexpandmode%
 }
 
 \newcommand{\splitatinf}[3]{%
@@ -86,3 +87,100 @@
 \newcommand{\isthereaplusornot}[3]{%
 \ifsubstring{#1}{+}{#2}{#3}%
 }
+
+
+%%% Sorting-related functions
+
+\newtoggle{RemoveZeroesWhenCleaningString}
+% Old style string cleanup for sorting leaves \000 in the string
+% New style removes \000
+% new style is faster, but to keep backward compatibility, we should accound for all style 
+\newcommand{\definethepdfsymbolcode}[2]{%
+	\pdfstringdef\specialcharcode{#1}%
+	\iftoggle{RemoveZeroesWhenCleaningString}{%
+		\StrGobbleLeft{\specialcharcode}{8}[\specialcharcode]% remove \376\377 from the start of the string
+		\StrSubstitute{\specialcharcode}{\string\000}{}[#2]% remove \000
+	}{%
+		\StrGobbleLeft{\specialcharcode}{8}[#2]% remove \376\377 from the start of the string
+	}%
+}
+
+\toggletrue{RemoveZeroesWhenCleaningString}
+\definethepdfsymbolcode{[}{\symbolcodeforthesquarebracket}
+\definethepdfsymbolcode{\{}{\symbolcodeforthefigbracket}
+\definethepdfsymbolcode{ }{\symbolcodeforthespace}
+\definethepdfsymbolcode{'}{\symbolcodeforthetick}
+\togglefalse{RemoveZeroesWhenCleaningString}
+
+\newcommand{\cleanstringforsorting}[1]{%
+% prepares a string to become a sortable string
+% the results is returned into \textwithoutformatting
+	\pdfstringdef\textwithoutformatting{#1}%
+	\toggletrue{RemoveZeroesWhenCleaningString}%
+	\saveexpandmode%
+	\expandarg%
+	\StrGobbleLeft{\textwithoutformatting}{8}[\textwithoutformatting]% remove \376\377 from the start of the string
+	\StrSubstitute{\textwithoutformatting}{\string\000}{}[\textwithoutformatting]% remove \000
+	\StrSubstitute{\textwithoutformatting}{\symbolcodeforthesquarebracket}{}[\textwithoutformatting]%
+	\StrSubstitute{\textwithoutformatting}{\symbolcodeforthefigbracket}{}[\textwithoutformatting]%
+	\StrSubstitute{\textwithoutformatting}{\symbolcodeforthespace}{}[\textwithoutformatting]%
+	\StrSubstitute{\textwithoutformatting}{\symbolcodeforthetick}{}[\textwithoutformatting]%
+	\restoreexpandmode%
+	\dolanguagespecificsubstitute%
+	\togglefalse{RemoveZeroesWhenCleaningString}%
+}%
+
+\newcommand{\cleannumberforsorting}[1]{%
+% prepares a string to become a sortable number
+% the results is returned into \costwithoutformatting
+	\pdfstringdef\costwithoutformatting{#1}%
+	\toggletrue{RemoveZeroesWhenCleaningString}%	
+	\saveexpandmode%
+	\expandarg%
+	\StrGobbleLeft{\costwithoutformatting}{8}[\costwithoutformatting]% remove \376\377 from the start of the string
+	\StrSubstitute{\costwithoutformatting}{\string\000}{}[\costwithoutformatting]% remove \000
+	\StrSubstitute{\costwithoutformatting}{\symbolcodeforthespace}{}[\costwithoutformatting]%
+	\definethepdfsymbolcode{\free}{\pdfsymbolcode}%
+	\StrSubstitute{\costwithoutformatting}{\pdfsymbolcode}{0}[\costwithoutformatting]%
+	\definethepdfsymbolcode{\permodel}{\pdfsymbolcode}%
+	\StrSubstitute{\costwithoutformatting}{\pdfsymbolcode}{}[\costwithoutformatting]%
+	\definethepdfsymbolcode{\nolimit}{\pdfsymbolcode}%
+	\StrSubstitute{\costwithoutformatting}{\pdfsymbolcode}{999999}[\costwithoutformatting]%		
+	\restoreexpandmode%
+	\togglefalse{RemoveZeroesWhenCleaningString}%
+}%
+
+
+
+%%% Converting macros %%%
+
+% First Argument: a single macro X that refer to a single macro Y. 
+% Second Argument: returns here the name of macro Y (i.e. without \ and {} )
+\newcommand{\ConvertNameMacroToStr}[2]{%
+	\edef\tempstrCNMTS{\detokenize\expandafter{#1}}%
+	\saveexpandmode%
+	\expandarg%
+	% we assume that str begins with a '\'
+	\StrGobbleLeft{\tempstrCNMTS}{1}[\tempstrCNMTS]%
+	% we do not assume that str ands with ' {}' - we check this
+	% extra ' ' would be added before '{}' by detokenization
+	\IfEndWith{\tempstrCNMTS}{\detokenize{{}}}{%
+		\StrGobbleRight{\tempstrCNMTS}{3}[#2]% 
+	}{%
+		\StrGobbleRight{\tempstrCNMTS}{1}[#2]% 
+	}%
+	\restoreexpandmode% 
+}%
+
+
+% First Argument: a single string X
+% Second Argument: a single string Y
+% Third Argument: returns here the value of the macro \XY{}
+\newcommand{\CombineStringsIntoMacroAndExpand}[3]{%
+	\expandafter\ifundef\expandafter{\csname#1#2\endcsname}{%
+		\StrGobbleRight{}{0}[#3]% return blank 
+	}{%
+		\edef\tempstrCSIMAE{\csname#1#2\endcsname}%
+		\StrGobbleRight{\tempstrCSIMAE}{0}[#3]% return value 
+	}%
+}%
