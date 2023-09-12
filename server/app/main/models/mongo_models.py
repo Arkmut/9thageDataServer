@@ -643,6 +643,7 @@ def delete_army(name: str, version: str):
 RSC_PATH_BALISE = "$RSC_PATH$"
 RSC_PATH = "./rsc"
 ARMY_NAME_TAG_BALISE = "$ARMY_NAME_TAG$"
+ARMY_NAME_CAPS_BALISE = "$ARMY_NAME_CAPS$"
 ARMY_NAME_BALISE = "$ARMY_NAME$"
 ARMY_VERSION_BALISE = "$ARMY_VERSION$"
 ALPHA_BETA_VERSION_BALISE = "$ALPHA_BETA_VERSION$"
@@ -898,6 +899,7 @@ def format_template(army: {}, date, date_format, template: str, language: str, g
     template = template.replace(RSC_PATH_BALISE, RSC_PATH)
     template = template.replace(ARMY_NAME_TAG_BALISE, name_tag)
     template = template.replace(ARMY_NAME_BALISE, army['name'])
+    template = template.replace(ARMY_NAME_CAPS_BALISE, army['name'].upper())
     template = template.replace(ARMY_VERSION_BALISE, gen_version(army['version']))
     template = template.replace(ALPHA_BETA_VERSION_BALISE, gen_alpha_beta(army))
     template = template.replace(CURRENT_DATE_BALISE, date.strftime(date_format))
