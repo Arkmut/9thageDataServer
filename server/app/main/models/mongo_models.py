@@ -721,6 +721,8 @@ def gen_toc(army: {}, template: str, changelog: str):
         c = army['armyOrganisation']['categories'][i]
         nameCat = c['name'].replace('\\', '').replace('{}', '')
         part2 += f"\t\\tocentry{{{nameCat}}}{{{c['name']}}}"
+        if 'character' in nameCat:
+            part2 += f"\\par\n\t\\tocentry{{charactermounts}}{{\\charactermounts}}"
         if i < len(army['armyOrganisation']['categories']) - 1:
             part2 += "\\par\n"
         else:

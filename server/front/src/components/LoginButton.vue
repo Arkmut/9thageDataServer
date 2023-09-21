@@ -2,7 +2,7 @@
 
     <span class="navbar-item">
         <template v-if="!isLoggedIn">
-            <a class="button is-link is-inverted" href="/login">
+            <a class="button is-link is-inverted" @click="doLogin">
                 <span>Login</span>
               </a>
         </template>
@@ -36,7 +36,11 @@
 
 
             },
+            doLogin(){
+                this.$router.push({ path: `/login`}).catch(()=>{});
 
+
+            },
         },
         created() {
             this.loggedIn();

@@ -20,7 +20,19 @@ const routes = [
 const router = new VueRouter({
   routes, // short for `routes: routes`
 })
-
+router.beforeEach((to, from, next) => {
+  if (to.fullPath.substr(0,2) === "/#") {
+    const path = to.fullPath.substr(2);
+    next(path);
+    return;
+  }
+   if (to.fullPath.substr(0,2) === "#/") {
+    const path = to.fullPath.substr(2);
+    next(path);
+    return;
+  }
+  next();
+});
 Vue.prototype.$http = axios;
 Vue.prototype.$router = router;
 Vue.config.productionTip = false
